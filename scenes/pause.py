@@ -1,14 +1,19 @@
-import pygame
-import sys
+import pygame, sys
+from scenes.options import OptionsScene
+from scenes import fonts
 
 class PauseMenu:
-    def __init__(self, screen_width=800, screen_height=600):
+    def __init__(self, screen_width=800, screen_height=600, bgm_volume=0.1, sfx_volume=0.3, previous_scene=None):
         self.screen_width = screen_width
         self.screen_height = screen_height
-        self.font = pygame.font.Font(None, 32)
-        self.menu_items = ["Resume", "Settings", "Quit"]
+        self.font = fonts.malgumbd_font_small
+        self.menu_items = ["계속하기", "설정", "종료"]
         self.menu_index = 0
         self.active = False
+        self.bgm_volume = bgm_volume
+        self.sfx_volume = sfx_volume
+        self.previous_scene = previous_scene
+        self.options_scene = OptionsScene(bgm_volume=self.bgm_volume, sfx_volume=self.sfx_volume, previous_scene=self)
 
     def toggle(self):
         self.active = not self.active
@@ -26,7 +31,6 @@ class PauseMenu:
                 self.menu_index = (self.menu_index + 1) % len(self.menu_items)
             elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
                 return self.select_item()
-
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mx, my = event.pos
             for i, item in enumerate(self.menu_items):
@@ -38,14 +42,19 @@ class PauseMenu:
 
     def select_item(self):
         choice = self.menu_items[self.menu_index]
-        if choice == "Resume":
+        if choice == "계속하기":
             self.active = False
-        elif choice == "Settings":
-            print("Settings 선택됨 (여기에 설정창 로직 추가)")
-        elif choice == "Quit":
+            return None
+        elif choice == "설정":
+            return "options"
+        elif choice == "종료":
             pygame.quit()
             sys.exit()
         return None
+
+    def update(self, dt):
+        if self.menu_index == 1:
+            self.options_scene.update(dt)
 
     def draw(self, screen):
         if not self.active:
@@ -55,6 +64,9 @@ class PauseMenu:
         screen.blit(overlay, (0,0))
 
         for i, item in enumerate(self.menu_items):
-            color = (255,255,255) if i == self.menu_index else (180,180,180)
-            text_surf = self.font.render(item, True, color)
-            screen.blit(text_surf, text_surf.get_rect(center=(self.screen_width//2, 200 + i*50)))
+            color = (255,69,0) if i == self.menu_index else (80,80,80)
+            text_surf, rect = self.font.render(item, color)
+            screen.blit(text_surf, (self.screen_width//2 - rect.width//2, 200 + i*50))
+
+        if self.menu_index == 1:
+            self.options_scene.draw(screen)

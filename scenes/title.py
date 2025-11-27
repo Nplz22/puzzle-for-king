@@ -1,10 +1,11 @@
 import pygame, sys
-import pygame.freetype
+from scenes import fonts
+from scenes.options import OptionsScene
 
 class TitleScene:
     def __init__(self):
-        self.font_large = pygame.freetype.Font("assets/fonts/malgunbd.ttf", 64)
-        self.font_small = pygame.freetype.Font("assets/fonts/malgunbd.ttf", 28)
+        self.font_large = fonts.malgunbd_font_big
+        self.font_small = fonts.malgun_font
         self.buttons = ["게임 시작", "설정", "종료"]
         self.selected = 0
         self.blink = True
@@ -15,11 +16,13 @@ class TitleScene:
         self.confirm_sfx.set_volume(0.3)
         self.bg_image = pygame.image.load("assets/images/title background.png").convert()
         self.bg_image = pygame.transform.scale(self.bg_image, (800, 600))
+        self.bgm_volume = 0.1
+        self.sfx_volume = 0.3
 
     def start(self):
         pygame.mixer.music.stop()
         pygame.mixer.music.load("assets/sounds/타이틀 브금.mp3")
-        pygame.mixer.music.set_volume(0.1)
+        pygame.mixer.music.set_volume(self.bgm_volume)
         pygame.mixer.music.play(-1)
 
     def handle_event(self, event):
@@ -30,7 +33,7 @@ class TitleScene:
                 if choice == "게임 시작":
                     return "play"
                 elif choice == "설정":
-                    print("Settings 선택됨")
+                    return "options"
                 elif choice == "종료":
                     pygame.quit()
                     sys.exit()
