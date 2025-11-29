@@ -1,4 +1,4 @@
-import pygame, sys
+import pygame
 from scenes import fonts
 
 class PlayScene:
@@ -44,10 +44,9 @@ class PlayScene:
         dy = (keys[pygame.K_DOWN] - keys[pygame.K_UP]) * self.speed * dt
         self.player.x += dx
         self.player.y += dy
-        left = self.grid_origin[0]
-        top = self.grid_origin[1]
-        max_x = left + self.grid_cols * self.cell_size - self.player.width
-        max_y = top + self.grid_rows * self.cell_size - self.player.height
+        left, top = self.grid_origin
+        max_x = left + self.grid_cols*self.cell_size - self.player.width
+        max_y = top + self.grid_rows*self.cell_size - self.player.height
         self.player.x = max(left, min(self.player.x, max_x))
         self.player.y = max(top, min(self.player.y, max_y))
 
@@ -59,8 +58,7 @@ class PlayScene:
             for c in range(self.grid_cols):
                 cell_rect = pygame.Rect(gx + c*cs, gy + r*cs, cs, cs)
                 pygame.draw.rect(screen, (60,80,70), cell_rect, 1)
-        px = self.player.centerx
-        py = self.player.centery
+        px, py = self.player.center
         cell_x = (px - gx) // cs
         cell_y = (py - gy) // cs
         if 0 <= cell_x < self.grid_cols and 0 <= cell_y < self.grid_rows:
