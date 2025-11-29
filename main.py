@@ -15,16 +15,16 @@ def main():
     title_scene = TitleScene()
     story_lines = [
         "주인공 현우는 네모 왕국의 왕자로 태어났습니다.",
-        "하지만 어린 나이에 어머니 왕비를 잃고 말았죠.",
+        "하지만 어린 나이에 어머니(왕비)를 잃고 말았죠.",
         "왕은 새 왕비를 맞이했고, 또 다른 왕자가 태어났습니다.",
         "시간이 흐르며 왕의 건강은 악화되었고,",
-        "왕은 퍼즐 코스를 먼저 풀 사람에게 왕위를 물려주겠다고 했습니다.",
-        "주인공은 무사히 왕위에 오를 수 있을까요?"
+        "왕은 퍼즐 코스를 먼저 푼 사람에게 왕위를 물려주겠다고 했습니다.",
+        "현우는 과연 왕위에 오를 수 있을까요?"
     ]
     story_scene = StoryIntro(
         lines=story_lines,
         bgm_path="assets/sounds/스토리 요약 브금.mp3",
-        bgm_volume=0.1,
+        bgm_volume=0.07,
         sfx_path="assets/sounds/선택 브금.wav",
         previous_scene=title_scene
     )

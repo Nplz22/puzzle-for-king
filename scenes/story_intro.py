@@ -1,53 +1,58 @@
-import pygame
+import pygame, sys
 from scenes import fonts
 
 class StoryIntro:
-    def __init__(self, lines,bgm_path=None,bgm_volume=0.1,sfx_path=None,previous_scene=None,next_on_end=None):
-        self.lines=lines
-        self.index=0
-        self.font=fonts.malgun_font
-        self.bgm_path=bgm_path
-        self.bgm_volume=bgm_volume
-        self.sfx_path=sfx_path
-        self.sfx=None
-        if self.sfx_path:
-            try:
-                self.sfx=pygame.mixer.Sound(self.sfx_path)
-            except Exception:
-                self.sfx=None
-        self.typing=True
-        self.type_pos=0
-        self.type_speed=60.0
-        self.type_timer=0.0
-        self.padding=40
-        self.previous_scene=previous_scene
-        self.next_on_end=next_on_end
-        self.bg_playing=False
+    def __init__(self, lines, bgm_path=None, bgm_volume=0.1, sfx_path=None, previous_scene=None, next_on_end=None):
+        self.lines = lines
+        self.index = 0
+        self.font = fonts.malgun_font
+        self.bgm_path = bgm_path
+        self.bgm_volume = bgm_volume
+        self.sfx_path = sfx_path
+        self.sfx = None
+        try:
+            if self.sfx_path:
+                self.sfx = pygame.mixer.Sound(self.sfx_path)
+        except Exception:
+            self.sfx = None
+        self.typing = True
+        self.type_pos = 0
+        self.type_speed = 60.0
+        self.type_timer = 0.0
+        self.padding = 40
+        self.previous_scene = previous_scene
+        self.next_on_end = next_on_end
+        self.bg_playing = False
+        try:
+            self.bg_image = pygame.image.load("assets/images/story background.png").convert()
+            self.bg_image = pygame.transform.scale(self.bg_image, (800, 600))
+        except Exception:
+            self.bg_image = None
 
     def start(self):
         try:
-            if self.bgm_path and self.bgm_volume>0:
+            if self.bgm_path and self.bgm_volume > 0:
                 pygame.mixer.music.stop()
                 pygame.mixer.music.load(self.bgm_path)
                 pygame.mixer.music.set_volume(self.bgm_volume)
                 pygame.mixer.music.play(-1)
-                self.bg_playing=True
+                self.bg_playing = True
             else:
                 pygame.mixer.music.stop()
-                self.bg_playing=False
+                self.bg_playing = False
         except Exception:
-            self.bg_playing=False
-        self.index=0
-        self.type_pos=0
-        self.typing=True
-        self.type_timer=0.0
+            self.bg_playing = False
+        self.index = 0
+        self.type_pos = 0
+        self.typing = True
+        self.type_timer = 0.0
 
-    def handle_event(self,event):
-        if event.type==pygame.KEYDOWN:
-            if event.key in (pygame.K_RETURN,pygame.K_SPACE):
+    def handle_event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key in (pygame.K_RETURN, pygame.K_SPACE):
                 if self.typing:
-                    self.type_pos=len(self.lines[self.index])
-                    self.typing=False
+                    self.type_pos = len(self.lines[self.index])
+                    self.typing = False
                     if self.sfx:
                         try:
                             self.sfx.play()
@@ -55,11 +60,11 @@ class StoryIntro:
                             pass
                     return None
                 else:
-                    if self.index<len(self.lines)-1:
-                        self.index+=1
-                        self.type_pos=0
-                        self.typing=True
-                        self.type_timer=0.0
+                    if self.index < len(self.lines) - 1:
+                        self.index += 1
+                        self.type_pos = 0
+                        self.typing = True
+                        self.type_timer = 0.0
                         if self.sfx:
                             try:
                                 self.sfx.play()
@@ -71,62 +76,65 @@ class StoryIntro:
                             pygame.mixer.music.stop()
                         except Exception:
                             pass
-                        if self.previous_scene:
+                        if self.previous_scene is not None:
                             return self.previous_scene
-                        if self.next_on_end:
+                        if self.next_on_end is not None:
                             return self.next_on_end
                         return "title"
-            elif event.key==pygame.K_ESCAPE:
+            elif event.key == pygame.K_ESCAPE:
                 try:
                     pygame.mixer.music.stop()
                 except Exception:
                     pass
-                if self.previous_scene:
+                if self.previous_scene is not None:
                     return self.previous_scene
                 return "title"
         return None
 
-    def update(self,dt):
+    def update(self, dt):
         if not self.typing:
             return
-        self.type_timer+=dt
-        chars_to_advance=int(self.type_timer*self.type_speed)
-        if chars_to_advance>0:
-            self.type_pos=min(len(self.lines[self.index]),self.type_pos+chars_to_advance)
-            self.type_timer-=chars_to_advance/self.type_speed
-            if self.type_pos>=len(self.lines[self.index]):
-                self.typing=False
+        self.type_timer += dt
+        chars_to_advance = int(self.type_timer * self.type_speed)
+        if chars_to_advance > 0:
+            self.type_pos = min(len(self.lines[self.index]), self.type_pos + chars_to_advance)
+            self.type_timer -= chars_to_advance / self.type_speed
+            if self.type_pos >= len(self.lines[self.index]):
+                self.typing = False
 
-    def draw(self,screen):
-        screen.fill((18,18,24))
-        w,h=screen.get_size()
-        box=pygame.Rect(self.padding,h-180,w-self.padding*2,140)
-        pygame.draw.rect(screen,(10,10,14),box)
-        pygame.draw.rect(screen,(80,80,90),box,2)
-        text=self.lines[self.index][:self.type_pos]
-        lines=[]
-        maxw=box.width-20
-        words=text.split(" ")
-        cur=""
-        for word in words:
-            test=(cur+" "+word).strip()
-            surf,rect=self.font.render(test,(220,220,220))
-            if surf.get_width()>maxw and cur!="":
-                lines.append(cur)
-                cur=word
-            else:
-                cur=test
-        if cur!="":
-            lines.append(cur)
-        y=box.top+10
-        for ln in lines:
-            surf,rect=self.font.render(ln,(220,220,220))
-            screen.blit(surf,(box.left+10,y))
-            y+=rect.height+6
-        hint=""
-        if self.typing:
-            hint="엔터: 문장 빠르게 표시"
+    def draw(self, screen):
+        if self.bg_image:
+            screen.blit(self.bg_image, (0, 0))
         else:
-            hint="엔터: 다음 / 마지막이면 종료"
-        hint_surf,hint_rect=self.font.render(hint,(160,160,160))
-        screen.blit(hint_surf,(box.right-hint_rect.width-10,box.bottom-hint_rect.height-8))
+            screen.fill((18, 18, 24))
+        w, h = screen.get_size()
+        box = pygame.Rect(self.padding, h - 180, w - self.padding*2, 140)
+        pygame.draw.rect(screen, (10, 10, 14), box)
+        pygame.draw.rect(screen, (80, 80, 90), box, 2)
+        text = self.lines[self.index][:self.type_pos]
+        lines = []
+        maxw = box.width - 20
+        words = text.split(" ")
+        cur = ""
+        for word in words:
+            test = (cur + " " + word).strip()
+            surf, rect = self.font.render(test, (220, 220, 220))
+            if surf.get_width() > maxw and cur != "":
+                lines.append(cur)
+                cur = word
+            else:
+                cur = test
+        if cur != "":
+            lines.append(cur)
+        y = box.top + 10
+        for ln in lines:
+            surf, rect = self.font.render(ln, (220, 220, 220))
+            screen.blit(surf, (box.left + 10, y))
+            y += rect.height + 6
+        hint = ""
+        if self.typing:
+            hint = "엔터: 문장 빠르게 표시"
+        else:
+            hint = "엔터: 다음 / 마지막이면 종료"
+        hint_surf, hint_rect = self.font.render(hint, (160, 160, 160))
+        screen.blit(hint_surf, (box.right - hint_rect.width - 10, box.bottom - hint_rect.height - 8))
