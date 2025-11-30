@@ -1,5 +1,6 @@
-import pygame, sys
+import pygame, sys, os
 from scenes import fonts
+from scenes.audio import get_audio_manager
 
 class TitleScene:
     def __init__(self):
@@ -9,39 +10,52 @@ class TitleScene:
         self.selected = 0
         self.blink = True
         self.blink_timer = 0
-        self.select_sfx = pygame.mixer.Sound("assets/sounds/방향키 이동 브금.wav")
-        self.confirm_sfx = pygame.mixer.Sound("assets/sounds/선택 브금.wav")
-        self.select_sfx.set_volume(0.3)
-        self.confirm_sfx.set_volume(0.3)
-        self.bg_image = pygame.image.load("assets/images/title background.png").convert()
-        self.bg_image = pygame.transform.scale(self.bg_image, (800, 600))
+        self.audio = get_audio_manager()
+        try:
+            self.select_sfx = pygame.mixer.Sound("assets/sounds/방향키 이동 브금.wav")
+            self.select_sfx.set_volume(self.audio.sfx_volume)
+        except Exception:
+            self.select_sfx = None
+        try:
+            self.confirm_sfx = pygame.mixer.Sound("assets/sounds/선택 브금.wav")
+            self.confirm_sfx.set_volume(self.audio.sfx_volume)
+        except Exception:
+            self.confirm_sfx = None
+        try:
+            img = pygame.image.load("assets/images/title background.png").convert()
+            self.bg_image = pygame.transform.scale(img, (800,600))
+        except Exception:
+            self.bg_image = None
         self.bgm_volume = 0.1
         self.sfx_volume = 0.3
+        self.bgm_path = "assets/sounds/타이틀 브금.mp3"
 
     def start(self):
-        pygame.mixer.music.stop()
-        pygame.mixer.music.load("assets/sounds/타이틀 브금.mp3")
-        pygame.mixer.music.set_volume(self.bgm_volume)
-        pygame.mixer.music.play(-1)
+        self.audio.play_music(self.bgm_path, volume=self.bgm_volume)
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_RETURN, pygame.K_SPACE):
-                self.confirm_sfx.play()
+                if self.confirm_sfx:
+                    try: self.confirm_sfx.play()
+                    except Exception: pass
                 choice = self.buttons[self.selected]
                 if choice == "게임 시작":
-                    return "play"
+                    return "story"
                 elif choice == "설정":
                     return "options"
                 elif choice == "종료":
-                    pygame.quit()
-                    sys.exit()
+                    pygame.quit(); sys.exit()
             elif event.key in (pygame.K_UP, pygame.K_w):
                 self.selected = (self.selected - 1) % len(self.buttons)
-                self.select_sfx.play()
+                if self.select_sfx:
+                    try: self.select_sfx.play()
+                    except Exception: pass
             elif event.key in (pygame.K_DOWN, pygame.K_s):
                 self.selected = (self.selected + 1) % len(self.buttons)
-                self.select_sfx.play()
+                if self.select_sfx:
+                    try: self.select_sfx.play()
+                    except Exception: pass
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mx, my = event.pos
             button_gap = 80
@@ -50,8 +64,10 @@ class TitleScene:
                 btn_rect = pygame.Rect(300, start_y + i*button_gap, 200, 40)
                 if btn_rect.collidepoint(mx, my):
                     self.selected = i
-                    self.select_sfx.play()
-                    return self.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN))
+                    if self.select_sfx:
+                        try: self.select_sfx.play()
+                        except Exception: pass
+                    return "story"
         return None
 
     def update(self, dt):
@@ -61,7 +77,10 @@ class TitleScene:
             self.blink_timer = 0
 
     def draw(self, screen):
-        screen.blit(self.bg_image, (0,0))
+        if self.bg_image:
+            screen.blit(self.bg_image, (0,0))
+        else:
+            screen.fill((0,0,0))
         title_text = "Puzzle for the King"
         title_surf, title_rect = self.font_large.render(title_text, (255,215,0))
         screen.blit(title_surf, (400 - title_rect.width//2, 150 - title_rect.height//2))
