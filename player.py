@@ -1,13 +1,15 @@
 import pygame
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, x, y, image_path):
+    def __init__(self, x, y, image_path, scale=2.0, speed=220):
         super().__init__()
-        self.image = pygame.image.load(image_path).convert_alpha()
+        img = pygame.image.load(image_path).convert_alpha()
+        w, h = img.get_size()
+        sw, sh = max(1, int(w * scale)), max(1, int(h * scale))
+        self.image = pygame.transform.smoothscale(img, (sw, sh))
         self.rect = self.image.get_rect(midbottom=(x, y))
-        self.speed = 220
+        self.speed = speed
         self.vx = 0
-        self.vy = 0
         self.inventory = []
         self.puzzles_cleared = 0
         self.name = "Hero"

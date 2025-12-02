@@ -35,12 +35,23 @@ class TitleScene:
             pass
         self.audio.play_music(self.bgm_path)
 
+    def _play_sfx_now(self, sfx):
+        if not sfx:
+            return
+        try:
+            sfx.set_volume(self.audio.sfx_volume * getattr(self.audio, "master_volume", 1.0))
+        except Exception:
+            pass
+        try:
+            sfx.play()
+        except Exception:
+            pass
+
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_RETURN, pygame.K_SPACE):
                 if self.confirm_sfx:
-                    try: self.confirm_sfx.play()
-                    except Exception: pass
+                    self._play_sfx_now(self.confirm_sfx)
                 choice = self.buttons[self.selected]
                 if choice == "게임 시작":
                     return "story"
@@ -51,13 +62,11 @@ class TitleScene:
             elif event.key in (pygame.K_UP, pygame.K_w):
                 self.selected = (self.selected - 1) % len(self.buttons)
                 if self.select_sfx:
-                    try: self.select_sfx.play()
-                    except Exception: pass
+                    self._play_sfx_now(self.select_sfx)
             elif event.key in (pygame.K_DOWN, pygame.K_s):
                 self.selected = (self.selected + 1) % len(self.buttons)
                 if self.select_sfx:
-                    try: self.select_sfx.play()
-                    except Exception: pass
+                    self._play_sfx_now(self.select_sfx)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mx, my = event.pos
             button_gap = 80
@@ -67,8 +76,7 @@ class TitleScene:
                 if btn_rect.collidepoint(mx, my):
                     self.selected = i
                     if self.select_sfx:
-                        try: self.select_sfx.play()
-                        except Exception: pass
+                        self._play_sfx_now(self.select_sfx)
                     return "story"
         return None
 
