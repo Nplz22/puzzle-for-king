@@ -13,12 +13,12 @@ class TitleScene:
         self.audio = get_audio_manager()
         try:
             self.select_sfx = pygame.mixer.Sound("assets/sounds/방향키 이동 브금.wav")
-            self.select_sfx.set_volume(self.audio.sfx_volume)
+            self.audio.register_sfx(self.select_sfx)
         except Exception:
             self.select_sfx = None
         try:
             self.confirm_sfx = pygame.mixer.Sound("assets/sounds/선택 브금.wav")
-            self.confirm_sfx.set_volume(self.audio.sfx_volume)
+            self.audio.register_sfx(self.confirm_sfx)
         except Exception:
             self.confirm_sfx = None
         try:
@@ -26,12 +26,14 @@ class TitleScene:
             self.bg_image = pygame.transform.scale(img, (800,600))
         except Exception:
             self.bg_image = None
-        self.bgm_volume = 0.1
-        self.sfx_volume = 0.3
         self.bgm_path = "assets/sounds/타이틀 브금.mp3"
 
     def start(self):
-        self.audio.play_music(self.bgm_path, volume=self.bgm_volume)
+        try:
+            pygame.mixer.stop()
+        except Exception:
+            pass
+        self.audio.play_music(self.bgm_path)
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:

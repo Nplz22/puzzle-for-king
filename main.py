@@ -9,6 +9,7 @@ from scenes.goal import GoalScene
 from scenes.ending import EndingScene
 from scenes.options import OptionsScene
 from scenes.pause import PauseMenu
+from scenes.audio import get_audio_manager
 
 pygame.init()
 SCREEN = pygame.display.set_mode((800, 600))
@@ -16,12 +17,15 @@ pygame.display.set_caption("Puzzle for the King")
 clock = pygame.time.Clock()
 
 def main():
+    audio = get_audio_manager()
+
     title_scene = TitleScene()
     try:
         play_scene = PlayScene(previous_scene=title_scene)
     except TypeError:
         play_scene = PlayScene()
         setattr(play_scene, "previous_scene", title_scene)
+
     story_lines = [
         "주인공인 현우는 네모 왕국 왕자로 태어났습니다.",
         "하지만 어린 나이에 자신의 어머니(왕비)가 세상을 떠나버렸어요.",
@@ -39,6 +43,7 @@ def main():
         bg_image_path=os.path.join("assets","images","story background.png")
     )
     options_scene = OptionsScene(bgm_volume=0.1, sfx_volume=0.3, previous_scene=title_scene)
+
     try:
         puzzle1 = Puzzle1(previous_scene=play_scene)
     except TypeError:
@@ -64,47 +69,58 @@ def main():
     except Exception:
         pause_menu = PauseMenu()
         pause_menu.previous_scene = play_scene
+
     current_scene = title_scene
     last_scene = None
     if hasattr(title_scene, "start"):
+        try:
+            pygame.mixer.stop()
+        except Exception:
+            pass
         title_scene.start()
+
     running = True
     while running:
         dt = clock.tick(60) / 1000.0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit(); sys.exit()
+
             result = None
             try:
                 result = current_scene.handle_event(event)
             except Exception:
                 result = None
+
             if result is not None:
+                next_scene = None
                 if isinstance(result, str):
                     cmd = result.lower()
-                    if cmd == "story":
-                        current_scene = story_scene
-                    elif cmd == "play":
-                        current_scene = play_scene
-                    elif cmd == "puzzle1":
-                        current_scene = puzzle1
-                    elif cmd == "puzzle2":
-                        current_scene = puzzle2
-                    elif cmd == "puzzle3":
-                        current_scene = puzzle3
-                    elif cmd == "goal":
-                        current_scene = goal_scene
-                    elif cmd == "ending":
-                        current_scene = ending_scene
-                    elif cmd == "title":
-                        current_scene = title_scene
-                    elif cmd == "options":
-                        current_scene = options_scene
-                    elif cmd == "pause":
+                    mapping = {
+                        "story": story_scene,
+                        "play": play_scene,
+                        "puzzle1": puzzle1,
+                        "puzzle2": puzzle2,
+                        "puzzle3": puzzle3,
+                        "goal": goal_scene,
+                        "ending": ending_scene,
+                        "title": title_scene,
+                        "options": options_scene,
+                        "pause": pause_menu
+                    }
+                    next_scene = mapping.get(cmd, None)
+                    if cmd == "pause":
                         pause_menu.previous_scene = current_scene
-                        current_scene = pause_menu
                 else:
-                    current_scene = result
+                    next_scene = result
+
+                if next_scene is not None and next_scene is not current_scene:
+                    try:
+                        pygame.mixer.stop()
+                    except Exception:
+                        pass
+                    current_scene = next_scene
+
         if current_scene is not last_scene:
             try:
                 if hasattr(current_scene, "start"):
@@ -112,16 +128,19 @@ def main():
             except Exception:
                 pass
             last_scene = current_scene
+
         try:
             if hasattr(current_scene, "update"):
                 current_scene.update(dt)
         except Exception:
             pass
+
         try:
             if hasattr(current_scene, "draw"):
                 current_scene.draw(SCREEN)
         except Exception:
             pass
+
         pygame.display.flip()
 
 if __name__ == "__main__":

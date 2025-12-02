@@ -19,19 +19,19 @@ class OptionsScene:
         self.audio.set_sfx_volume(self.sfx_volume)
         try:
             self.sfx_move = pygame.mixer.Sound("assets/sounds/방향키 이동 브금.wav")
-            self.sfx_move.set_volume(self.audio.sfx_volume)
+            self.audio.register_sfx(self.sfx_move)
         except Exception:
             self.sfx_move = None
         try:
             self.sfx_confirm = pygame.mixer.Sound("assets/sounds/선택 브금.wav")
-            self.sfx_confirm.set_volume(self.audio.sfx_volume)
+            self.audio.register_sfx(self.sfx_confirm)
         except Exception:
             self.sfx_confirm = None
         self.bgm_path = "assets/sounds/설정 화면 브금.mp3"
 
     def start(self):
         if self.bgm_path:
-            self.audio.play_music(self.bgm_path, volume=self.bgm_volume)
+            self.audio.play_music(self.bgm_path)
         return
 
     def handle_event(self, event):
@@ -54,9 +54,6 @@ class OptionsScene:
                 if self.selected == 0:
                     self.bgm_volume = max(0.0, round(self.bgm_volume - 0.1, 2))
                     self.audio.set_music_volume(self.bgm_volume)
-                    if self.bgm_volume == 0:
-                        try: self.audio.pause_music()
-                        except Exception: pass
                     if self.sfx_move:
                         try: self.sfx_move.play()
                         except Exception: pass
@@ -64,7 +61,7 @@ class OptionsScene:
                     self.sfx_volume = max(0.0, round(self.sfx_volume - 0.1, 2))
                     self.audio.set_sfx_volume(self.sfx_volume)
                     if self.sfx_move:
-                        try: self.sfx_move.set_volume(self.audio.sfx_volume); self.sfx_move.play()
+                        try: self.sfx_move.play()
                         except Exception: pass
                 return None
             if event.key in (pygame.K_RIGHT, pygame.K_d):
@@ -72,9 +69,6 @@ class OptionsScene:
                     prev = self.bgm_volume
                     self.bgm_volume = min(1.0, round(self.bgm_volume + 0.1, 2))
                     self.audio.set_music_volume(self.bgm_volume)
-                    if prev == 0 and self.bgm_volume > 0 and self.audio.current_path:
-                        try: self.audio.unpause_music()
-                        except Exception: pass
                     if self.sfx_move:
                         try: self.sfx_move.play()
                         except Exception: pass
@@ -82,15 +76,16 @@ class OptionsScene:
                     self.sfx_volume = min(1.0, round(self.sfx_volume + 0.1, 2))
                     self.audio.set_sfx_volume(self.sfx_volume)
                     if self.sfx_move:
-                        try: self.sfx_move.set_volume(self.audio.sfx_volume); self.sfx_move.play()
+                        try: self.sfx_move.play()
                         except Exception: pass
                 return None
             if event.key in (pygame.K_RETURN, pygame.K_SPACE):
-                if self.sfx_confirm:
-                    try: self.sfx_confirm.play()
-                    except Exception: pass
                 if self.selected == 2:
                     return "title"
+                else:
+                    if self.sfx_confirm:
+                        try: self.sfx_confirm.play()
+                        except Exception: pass
                 return None
             if event.key == pygame.K_ESCAPE:
                 return "title"
@@ -104,9 +99,6 @@ class OptionsScene:
                         try: self.sfx_move.play()
                         except Exception: pass
                     if i == 2:
-                        if self.sfx_confirm:
-                            try: self.sfx_confirm.play()
-                            except Exception: pass
                         return "title"
         return None
 
@@ -119,7 +111,7 @@ class OptionsScene:
         else:
             screen.fill((50,50,60))
         for i, opt in enumerate(self.options):
-            color = (255,165,0) if i == self.selected else (180,180,180)
+            color = (255,69,0) if i == self.selected else (80,80,80)
             if i == 0:
                 text = f"{opt}: {int(self.bgm_volume*100)}%"
             elif i == 1:

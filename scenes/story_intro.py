@@ -21,10 +21,10 @@ class StoryIntro:
         try:
             if sfx_path:
                 self.select_sfx = pygame.mixer.Sound(sfx_path)
-                self.select_sfx.set_volume(self.audio.sfx_volume)
+                self.audio.register_sfx(self.select_sfx)
             else:
                 self.select_sfx = pygame.mixer.Sound("assets/sounds/선택 브금.wav")
-                self.select_sfx.set_volume(self.audio.sfx_volume)
+                self.audio.register_sfx(self.select_sfx)
         except Exception:
             self.select_sfx = None
         if bg_image_path and os.path.isfile(bg_image_path):
@@ -41,7 +41,7 @@ class StoryIntro:
 
     def start(self):
         if self.bgm_path:
-            self.audio.play_music(self.bgm_path, volume=self.bgm_volume)
+            self.audio.play_music(self.bgm_path)
         else:
             self.audio.stop_music()
         self.index = 0

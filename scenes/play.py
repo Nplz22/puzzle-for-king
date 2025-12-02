@@ -18,25 +18,28 @@ class PlayScene:
             self.bg_image = None
         self.audio = get_audio_manager()
         self.bgm_path = bgm_path
-        self.player = None
         self.camera_x = 0
         self.ground_y = 520
         self.player_speed = 220
         self.left_pressed = False
         self.right_pressed = False
+        surf = pygame.Surface((48,64), pygame.SRCALPHA)
+        surf.fill((200,50,50))
+        self.player = {
+            "image": surf,
+            "x": 400,
+            "y": self.ground_y,
+            "rect": surf.get_rect(midbottom=(400, self.ground_y))
+        }
 
     def start(self):
         if self.bgm_path:
-            self.audio.play_music(self.bgm_path, volume=0.1)
-        if self.player is None:
-            surf = pygame.Surface((48,64), pygame.SRCALPHA)
-            surf.fill((200,50,50))
-            self.player = {
-                "image": surf,
-                "x": 400,
-                "y": self.ground_y,
-                "rect": surf.get_rect(midbottom=(400, self.ground_y))
-            }
+            self.audio.play_music(self.bgm_path)
+        self.camera_x = 0
+        self.player["x"] = 400
+        self.player["rect"].midbottom = (self.player["x"], self.player["y"])
+        self.left_pressed = False
+        self.right_pressed = False
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -54,8 +57,6 @@ class PlayScene:
         return None
 
     def update(self, dt):
-        if not self.player:
-            return
         dx = 0
         if self.left_pressed:
             dx -= self.player_speed * dt
@@ -77,5 +78,5 @@ class PlayScene:
         if self.player:
             draw_x = self.player["rect"].x - self.camera_x
             screen.blit(self.player["image"], (draw_x, self.player["rect"].y))
-        hud_s, hud_r = self.font.render("플레이 씬 - 좌/우 이동 (효과음 없음)", (240,240,240))
+        hud_s, hud_r = self.font.render("플레이 씬 - 좌/우 이동", (240,240,240))
         screen.blit(hud_s, (10,10))
