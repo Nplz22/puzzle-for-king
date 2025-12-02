@@ -13,10 +13,10 @@ class AudioManager:
         self.current_path = None
         self.music_volume = 0.3
         self.sfx_volume = 0.3
+        self.master_volume = 0.25
         self.playing = False
         self.paused = False
         self._sfx_list = []
-        self.master_volume = 0.25
 
     def _apply_music_volume(self):
         try:
@@ -46,13 +46,10 @@ class AudioManager:
                 pygame.mixer.music.load(path)
             self._apply_music_volume()
             if self.music_volume == 0 or self.master_volume == 0:
-                try:
-                    pygame.mixer.music.pause()
-                    self.paused = True
-                    self.playing = False
-                except Exception:
-                    self.paused = True
-                    self.playing = False
+                try: pygame.mixer.music.pause()
+                except Exception: pass
+                self.paused = True
+                self.playing = False
             else:
                 try:
                     if not pygame.mixer.music.get_busy():
@@ -63,54 +60,24 @@ class AudioManager:
                     self.playing = True
                 except Exception:
                     self.playing = False
-                    self.paused = False
         except Exception:
             self.current_path = None
             self.playing = False
             self.paused = False
 
     def stop_music(self):
-        try:
-            pygame.mixer.music.stop()
-        except Exception:
-            pass
+        try: pygame.mixer.music.stop()
+        except Exception: pass
         self.playing = False
         self.paused = False
         self.current_path = None
-
-    def pause_music(self):
-        try:
-            pygame.mixer.music.pause()
-        except Exception:
-            pass
-        self.paused = True
-        self.playing = False
-
-    def unpause_music(self):
-        try:
-            pygame.mixer.music.unpause()
-        except Exception:
-            pass
-        if pygame.mixer.music.get_busy():
-            self.paused = False
-            self.playing = True
-        else:
-            if self.current_path and self.music_volume > 0 and self.master_volume > 0:
-                try:
-                    pygame.mixer.music.play(-1)
-                    self.paused = False
-                    self.playing = True
-                except Exception:
-                    self.playing = False
 
     def set_music_volume(self, volume):
         self.music_volume = max(0.0, min(1.0, volume))
         self._apply_music_volume()
         if self.music_volume == 0 or self.master_volume == 0:
-            try:
-                pygame.mixer.music.pause()
-            except Exception:
-                pass
+            try: pygame.mixer.music.pause()
+            except Exception: pass
             self.paused = True
             self.playing = False
         else:
@@ -120,21 +87,14 @@ class AudioManager:
                     self.paused = False
                     self.playing = True
                 except Exception:
-                    try:
-                        if self.current_path:
+                    if self.current_path:
+                        try:
                             pygame.mixer.music.play(-1)
                             self.playing = True
                             self.paused = False
-                    except Exception:
-                        self.playing = False
-            else:
-                try:
-                    if not pygame.mixer.music.get_busy() and self.current_path:
-                        pygame.mixer.music.play(-1)
-                        self.playing = True
-                        self.paused = False
-                except Exception:
-                    pass
+                        except Exception:
+                            self.playing = False
+
 
     def set_sfx_volume(self, volume):
         self.sfx_volume = max(0.0, min(1.0, volume))
@@ -146,21 +106,16 @@ class AudioManager:
             except Exception:
                 remove_list.append(s)
         for s in remove_list:
-            try:
-                self._sfx_list.remove(s)
-            except Exception:
-                pass
+            try: self._sfx_list.remove(s)
+            except Exception: pass
 
     def register_sfx(self, sound):
         try:
             if sound and sound not in self._sfx_list:
                 self._sfx_list.append(sound)
-                try:
-                    self._apply_sfx_volume_to_sound(sound)
-                except Exception:
-                    pass
-        except Exception:
-            pass
+                try: self._apply_sfx_volume_to_sound(sound)
+                except Exception: pass
+        except Exception: pass
 
 def get_audio_manager():
     return AudioManager()

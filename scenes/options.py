@@ -5,7 +5,7 @@ from scenes.audio import get_audio_manager
 class OptionsScene:
     def __init__(self, bgm_volume=0.1, sfx_volume=0.3, previous_scene=None):
         self.font = fonts.malgunbd_font_small
-        self.options = ["BGM 볼륨", "효과음 볼륨", "타이틀 화면으로 돌아가기"]
+        self.options = ["BGM 볼륨", "효과음 볼륨", "ESC를 눌러 이전 화면으로 돌아가세요"]
         self.selected = 0
         self.bgm_volume = bgm_volume
         self.sfx_volume = sfx_volume
@@ -28,7 +28,6 @@ class OptionsScene:
         except Exception:
             self.sfx_confirm = None
         self.bgm_path = "assets/sounds/설정 화면 브금.mp3"
-        self.esc_hint = "ESC를 눌러 이전 화면으로 돌아가세요"
 
     def start(self):
         if self.bgm_path:
@@ -42,15 +41,13 @@ class OptionsScene:
                 if self.selected != prev and self.sfx_move:
                     try: self.sfx_move.play()
                     except Exception: pass
-                return None
-            if event.key in (pygame.K_DOWN, pygame.K_s):
+            elif event.key in (pygame.K_DOWN, pygame.K_s):
                 prev = self.selected
                 self.selected = (self.selected + 1) % len(self.options)
                 if self.selected != prev and self.sfx_move:
                     try: self.sfx_move.play()
                     except Exception: pass
-                return None
-            if event.key in (pygame.K_LEFT, pygame.K_a):
+            elif event.key in (pygame.K_LEFT, pygame.K_a):
                 if self.selected == 0:
                     self.bgm_volume = max(0.0, round(self.bgm_volume - 0.1, 2))
                     self.audio.set_music_volume(self.bgm_volume)
@@ -63,8 +60,7 @@ class OptionsScene:
                     if self.sfx_move:
                         try: self.sfx_move.play()
                         except Exception: pass
-                return None
-            if event.key in (pygame.K_RIGHT, pygame.K_d):
+            elif event.key in (pygame.K_RIGHT, pygame.K_d):
                 if self.selected == 0:
                     self.bgm_volume = min(1.0, round(self.bgm_volume + 0.1, 2))
                     self.audio.set_music_volume(self.bgm_volume)
@@ -77,31 +73,19 @@ class OptionsScene:
                     if self.sfx_move:
                         try: self.sfx_move.play()
                         except Exception: pass
-                return None
-            if event.key in (pygame.K_RETURN, pygame.K_SPACE):
-                if self.selected == 2:
-                    return "title"
-                else:
-                    if self.sfx_confirm:
-                        try: self.sfx_confirm.play()
-                        except Exception: pass
-                return None
-            if event.key == pygame.K_ESCAPE:
+            elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                if self.sfx_confirm:
+                    try: self.sfx_confirm.play()
+                    except Exception: pass
+            elif event.key == pygame.K_ESCAPE:
                 if self.previous_scene:
                     return self.previous_scene
-                else:
-                    return "title"
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mx, my = event.pos
             for i, opt in enumerate(self.options):
                 item_rect = pygame.Rect(300, 200 + i * 60, 400, 40)
                 if item_rect.collidepoint(mx, my):
                     self.selected = i
-                    if self.sfx_move:
-                        try: self.sfx_move.play()
-                        except Exception: pass
-                    if i == 2:
-                        return "title"
         return None
 
     def update(self, dt):
@@ -122,6 +106,3 @@ class OptionsScene:
                 text = opt
             surf, rect = self.font.render(text, color)
             screen.blit(surf, (400 - rect.width//2, 200 + i*60))
-        # ESC 안내문을 맨 아래 좌측에 표시 (선택 불가)
-        hint_surf, hint_rect = self.font.render(self.esc_hint, (200,200,200))
-        screen.blit(hint_surf, (10, 560))
