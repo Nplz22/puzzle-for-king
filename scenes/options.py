@@ -28,11 +28,11 @@ class OptionsScene:
         except Exception:
             self.sfx_confirm = None
         self.bgm_path = "assets/sounds/설정 화면 브금.mp3"
+        self.esc_hint = "ESC를 눌러 이전 화면으로 돌아가세요"
 
     def start(self):
         if self.bgm_path:
             self.audio.play_music(self.bgm_path)
-        return
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -66,7 +66,6 @@ class OptionsScene:
                 return None
             if event.key in (pygame.K_RIGHT, pygame.K_d):
                 if self.selected == 0:
-                    prev = self.bgm_volume
                     self.bgm_volume = min(1.0, round(self.bgm_volume + 0.1, 2))
                     self.audio.set_music_volume(self.bgm_volume)
                     if self.sfx_move:
@@ -88,7 +87,10 @@ class OptionsScene:
                         except Exception: pass
                 return None
             if event.key == pygame.K_ESCAPE:
-                return "title"
+                if self.previous_scene:
+                    return self.previous_scene
+                else:
+                    return "title"
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mx, my = event.pos
             for i, opt in enumerate(self.options):
@@ -120,3 +122,6 @@ class OptionsScene:
                 text = opt
             surf, rect = self.font.render(text, color)
             screen.blit(surf, (400 - rect.width//2, 200 + i*60))
+        # ESC 안내문을 맨 아래 좌측에 표시 (선택 불가)
+        hint_surf, hint_rect = self.font.render(self.esc_hint, (200,200,200))
+        screen.blit(hint_surf, (10, 560))

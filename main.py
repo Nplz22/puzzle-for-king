@@ -8,7 +8,6 @@ from scenes.puzzle3 import Puzzle3
 from scenes.goal import GoalScene
 from scenes.ending import EndingScene
 from scenes.options import OptionsScene
-from scenes.pause import PauseMenu
 from scenes.audio import get_audio_manager
 
 pygame.init()
@@ -64,11 +63,6 @@ def main():
         ending_scene = EndingScene(previous_scene=title_scene)
     except TypeError:
         ending_scene = EndingScene()
-    try:
-        pause_menu = PauseMenu(previous_scene=play_scene)
-    except Exception:
-        pause_menu = PauseMenu()
-        pause_menu.previous_scene = play_scene
 
     current_scene = title_scene
     last_scene = None
@@ -106,11 +100,11 @@ def main():
                         "ending": ending_scene,
                         "title": title_scene,
                         "options": options_scene,
-                        "pause": pause_menu
+
                     }
                     next_scene = mapping.get(cmd, None)
-                    if cmd == "pause":
-                        pause_menu.previous_scene = current_scene
+                    if cmd == "options":
+                        options_scene.previous_scene = current_scene
                 else:
                     next_scene = result
 

@@ -1,6 +1,7 @@
 import pygame, os
 from scenes import fonts
 from scenes.audio import get_audio_manager
+from scenes.options import OptionsScene
 
 class StoryIntro:
     def __init__(self, lines, bgm_path=None, bgm_volume=0.1, previous_scene=None, next_scene=None, sfx_path=None, bg_image_path=None):
@@ -77,8 +78,7 @@ class StoryIntro:
             elif event.key == pygame.K_ESCAPE:
                 try: self.audio.stop_music()
                 except Exception: pass
-                if self.previous_scene:
-                    return self.previous_scene
+                return OptionsScene(previous_scene=self)
         return None
 
     def update(self, dt):
@@ -124,3 +124,5 @@ class StoryIntro:
         hint = "엔터: 문장 빠르게 표시" if self.typing else "엔터: 다음 / 마지막이면 종료"
         hint_surf, hint_rect = self.font.render(hint, (160,160,160))
         screen.blit(hint_surf, (box.right - hint_rect.width - 10, box.bottom - hint_rect.height - 8))
+        hud_s, hud_r = self.font.render("ESC: 옵션", (240,240,240))
+        screen.blit(hud_s, (10,10))

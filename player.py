@@ -12,7 +12,7 @@ class Player(pygame.sprite.Sprite):
         self.vx = 0
         self.inventory = []
         self.puzzles_cleared = 0
-        self.name = "Hero"
+        self.name = "현우"
 
     def update(self, dt, keys):
         self.vx = 0
