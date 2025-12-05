@@ -39,17 +39,15 @@ class Puzzle1:
         self.feedback_msg = ""
         self.feedback_timer = 0
         self.cleared = False
-        self.clear_start_time = None
+        self.next_scene = None
 
     def start(self):
         if self.bgm_path:
             self.audio.play_music(self.bgm_path)
 
     def handle_event(self, event):
-        if self.cleared:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                return self.previous_scene
-            return None
+        if self.cleared and event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+            self.next_scene = "play2"
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.hint_rect.collidepoint(event.pos):
@@ -61,8 +59,8 @@ class Puzzle1:
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                return "options"
-            if self.input_active:
+                self.next_scene = "options"
+            elif not self.cleared and self.input_active:
                 if event.key == pygame.K_BACKSPACE:
                     self.answer_text = self.answer_text[:-1]
                 elif event.key == pygame.K_RETURN:
@@ -99,7 +97,6 @@ class Puzzle1:
                     if hasattr(event, "unicode") and event.unicode and len(self.answer_text) < 40:
                         if not (ord(event.unicode) == 13):
                             self.answer_text += event.unicode
-        return None
 
     def update(self, dt):
         if self.feedback_timer > 0:
@@ -139,23 +136,7 @@ class Puzzle1:
                         else:
                             if line:
                                 lines.append(line)
-                            long_word = w
-                            surf_word, _ = font.render(long_word, (0,0,0))
-                            if surf_word.get_width() <= max_w:
-                                line = long_word
-                            else:
-                                part = ""
-                                for ch in long_word:
-                                    testp = part + ch
-                                    surfp, _ = font.render(testp, (0,0,0))
-                                    if surfp.get_width() <= max_w:
-                                        part = testp
-                                    else:
-                                        if part:
-                                            lines.append(part)
-                                        part = ch
-                                if part:
-                                    line = part
+                            line = w
                     if line:
                         lines.append(line)
                 return lines

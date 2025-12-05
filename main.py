@@ -2,6 +2,7 @@ import pygame, sys, os
 from scenes.title import TitleScene
 from scenes.story_intro import StoryIntro
 from scenes.play import PlayScene
+from scenes.play2 import Play2Scene
 from scenes.puzzle1 import Puzzle1
 from scenes.puzzle2 import Puzzle2
 from scenes.puzzle3 import Puzzle3
@@ -20,6 +21,7 @@ def main():
 
     title_scene = TitleScene()
     play_scene = PlayScene(previous_scene=title_scene)
+    play2_scene = Play2Scene(previous_scene=play_scene)
 
     story_lines = [
         "주인공인 현우는 네모 왕국 왕자로 태어났습니다.",
@@ -42,10 +44,10 @@ def main():
     options_scene = OptionsScene()
     options_scene.previous_scene = title_scene
 
-    puzzle1 = Puzzle1(previous_scene=play_scene)
-    puzzle2 = Puzzle2(previous_scene=play_scene)
-    puzzle3 = Puzzle3(previous_scene=play_scene)
-    goal_scene = GoalScene(previous_scene=play_scene)
+    puzzle1 = Puzzle1(previous_scene=play2_scene)
+    puzzle2 = Puzzle2(previous_scene=play2_scene)
+    puzzle3 = Puzzle3(previous_scene=play2_scene)
+    goal_scene = GoalScene(previous_scene=play2_scene)
     ending_scene = EndingScene(previous_scene=title_scene)
 
     current_scene = title_scene
@@ -71,6 +73,7 @@ def main():
                     mapping = {
                         "story": story_scene,
                         "play": play_scene,
+                        "play2": play2_scene,
                         "puzzle1": puzzle1,
                         "puzzle2": puzzle2,
                         "puzzle3": puzzle3,
@@ -91,6 +94,14 @@ def main():
                             next_scene.start(resume_from_options=True)
                         else:
                             next_scene.start()
+                    current_scene = next_scene
+
+        if hasattr(current_scene, "finished") and current_scene.finished:
+            if hasattr(current_scene, "next_scene"):
+                next_scene = current_scene.next_scene
+                if next_scene is not None and next_scene != current_scene:
+                    if hasattr(next_scene, "start"):
+                        next_scene.start()
                     current_scene = next_scene
 
         try:
