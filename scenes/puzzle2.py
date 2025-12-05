@@ -1,29 +1,11 @@
-import pygame
-from scenes import fonts
+from scenes.puzzle import Puzzle
 
-class Puzzle2:
+class Puzzle2(Puzzle):
     def __init__(self, previous_scene=None):
-        self.font = fonts.malgun_font
-        self.previous_scene = previous_scene
-        self.completed = False
-
-    def start(self):
-        pass
-
-    def handle_event(self, event):
-        if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE):
-            self.completed = True
-            if hasattr(self.previous_scene, "bridge_fixed"):
-                self.previous_scene.bridge_fixed = True
-            return self.previous_scene
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            return self.previous_scene
-        return None
-
-    def update(self, dt):
-        pass
-
+        super().__init__(previous_scene=previous_scene,
+                         bgm_path="assets/sounds/puzzle2 브금.mp3")
+    
     def draw(self, screen):
-        screen.fill((40,60,40))
-        s, r = self.font.render("퍼즐2: 엔터를 눌러 다리 복구", (240,240,240))
-        screen.blit(s, (180,280))
+        super().draw(screen)
+        t_s, t_r = self.font.render("퍼즐2: 엔터를 눌러 완료", (240,240,240))
+        screen.blit(t_s, (200, 280))

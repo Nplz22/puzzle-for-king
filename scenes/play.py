@@ -20,6 +20,9 @@ class Scroll(pygame.sprite.Sprite):
         self.rect.y = self.min_y
         self.speed = speed
         self.direction = 1
+        self.scroll_triggered = False
+        self.next_scene = None
+
 
     def update(self, dt):
         self.rect.y += self.direction * self.speed * dt
@@ -144,7 +147,13 @@ class PlayScene:
                 self.right_pressed = False
             if event.key in (pygame.K_UP, pygame.K_w):
                 self.player.jump = False
+        if self.next_scene:
+            tmp = self.next_scene
+            self.next_scene = None
+            return tmp
         return None
+        
+
 
     def update(self, dt):
         if self.dialog_active:
@@ -195,7 +204,8 @@ class PlayScene:
                 self.left_pressed = False
                 self.right_pressed = False
         if pygame.sprite.spritecollideany(self.player, self.scroll_group) and not self.dialog_active:
-            return "puzzle1"
+            self.scroll_triggered = True
+            self.next_scene = "puzzle1"
 
     def _wrap_text(self, text, maxw):
         words = text.split(" ")
