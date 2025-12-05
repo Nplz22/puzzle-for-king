@@ -9,3 +9,5 @@ class Puzzle2(Puzzle):
         super().draw(screen)
         t_s, t_r = self.font.render("퍼즐2: 엔터를 눌러 완료", (240,240,240))
         screen.blit(t_s, (200, 280))
+        esc_surf, esc_rect = self.font.render("ESC: 옵션", (240, 240, 240))
+        screen.blit(esc_surf, (10, 10))
