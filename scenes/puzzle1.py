@@ -6,6 +6,7 @@ from scenes.puzzle import PuzzleBackground
 class Puzzle1:
     def __init__(self, previous_scene=None, bgm_path=None, screen_size=None):
         self.font = fonts.malgunbd_font_small
+        self.label_font = fonts.malgun_font
         self.previous_scene = previous_scene
         self.completed = False
         self.audio = get_audio_manager()
@@ -15,13 +16,27 @@ class Puzzle1:
         self.bg_image = PuzzleBackground(width=w, height=h).image
         self.current_index = 0
         self.problems = [
-            "물음표에 들어갈 것은?\n\n   I am on Ear Pad [?]",
-            "문제 2 내용",
-            "문제 3 내용"
+            "1.물음표에 들어갈 것은?\n\n  I am on Ear Pad [?]",
+            "2. 다음 영어 수수께끼의 정답은 무엇일까요?\n 'I am an odd number. Take away a letter and I become even. What am I?'\n(저는 홀수입니다. 제 철자 하나를 빼면 짝수가 됩니다. 저는 무엇일까요?)",
+            "3. 다음 물음표에 들어갈 숫자는 무엇일까요?\n8809=6\n7111=0\n2172=0\n6666=4\n3213=0\n9312=?"
         ]
-        self.hint_text = "트럼프 카드 모양을\n생각해 보세요!"
+        self.answers = [
+            "love",
+            "seven",
+            "1"
+        ]
+        self.hints = [
+            "트럼프 카드 모양들,\n 영어로 뭐였죠?",
+            "1~10 사이에 숫자입니다\n (문제 사이에 힌트가 있어요!)",
+            "세모... 네모... 동그라미?"
+        ]
         self.show_hint = False
         self.hint_rect = pygame.Rect(20, h - 50, 80, 30)
+        self.answer_text = ""
+        self.input_active = True
+        self.input_rect = pygame.Rect(250, h - 110, 400, 36)
+        self.feedback_msg = ""
+        self.feedback_timer = 0
 
     def start(self):
         if self.bgm_path:
@@ -31,17 +46,48 @@ class Puzzle1:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.hint_rect.collidepoint(event.pos):
                 self.show_hint = not self.show_hint
-        if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE):
-            self.current_index += 1
-            if self.current_index >= len(self.problems):
-                self.completed = True
-                return self.previous_scene
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            return "options"
+            if self.input_rect.collidepoint(event.pos):
+                self.input_active = True
+            else:
+                self.input_active = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                return "options"
+            if self.input_active:
+                if event.key == pygame.K_BACKSPACE:
+                    self.answer_text = self.answer_text[:-1]
+                elif event.key == pygame.K_RETURN:
+                    submitted = self.answer_text.strip().lower()
+                    correct = self.answers[self.current_index].strip().lower() if self.current_index < len(self.answers) else ""
+                    if submitted != "" and submitted == correct:
+                        try:
+                            self.audio.play_sfx("assets/sounds/correct.wav")
+                        except Exception:
+                            pass
+                        self.answer_text = ""
+                        self.current_index += 1
+                        self.show_hint = False
+                        if self.current_index >= len(self.problems):
+                            self.completed = True
+                            return self.previous_scene
+                    else:
+                        try:
+                            self.audio.play_sfx("assets/sounds/wrong.wav")
+                        except Exception:
+                            pass
+                        self.feedback_msg = "틀렸습니다"
+                        self.feedback_timer = 120
+                else:
+                    if hasattr(event, "unicode") and event.unicode and len(self.answer_text) < 40:
+                        if not (ord(event.unicode) == 13):
+                            self.answer_text += event.unicode
         return None
 
     def update(self, dt):
-        pass
+        if self.feedback_timer > 0:
+            self.feedback_timer -= 1
+            if self.feedback_timer <= 0:
+                self.feedback_msg = ""
 
     def draw(self, screen):
         screen.blit(self.bg_image, (0, 0))
@@ -55,12 +101,50 @@ class Puzzle1:
                 y_offset += 40
         esc_surf, _ = self.font.render("ESC: 옵션", (240, 240, 240))
         screen.blit(esc_surf, (10, 10))
+        hint_label_surf, _ = self.label_font.render("힌트", (0,0,0))
+        label_w = hint_label_surf.get_width()
+        label_h = hint_label_surf.get_height()
+        pad_x = 12
+        pad_y = 6
+        self.hint_rect.x = 20
+        self.hint_rect.width = label_w + pad_x * 2
+        self.hint_rect.height = label_h + pad_y * 2
+        self.hint_rect.y = screen.get_height() - self.hint_rect.height - 20
         pygame.draw.rect(screen, (200,200,200), self.hint_rect, border_radius=4)
-        hint_label, _ = self.font.render("힌트", (0,0,0))
-        screen.blit(hint_label, (self.hint_rect.x + 10, self.hint_rect.y + 5))
+        screen.blit(hint_label_surf, (self.hint_rect.x + pad_x, self.hint_rect.y + pad_y))
         if self.show_hint:
-            hint_box = pygame.Rect(120, screen.get_height()-150, 400, 100)
+            hint_box = pygame.Rect(120, screen.get_height()-220, 400, 100)
             pygame.draw.rect(screen, (255,255,255), hint_box, border_radius=6)
             pygame.draw.rect(screen, (0,0,0), hint_box, 2, border_radius=6)
-            hint_surf, _ = self.font.render(self.hint_text, (0,0,0))
-            screen.blit(hint_surf, (hint_box.x + 10, hint_box.y + 10))
+            hint_text = self.hints[self.current_index] if self.current_index < len(self.hints) else ""
+            hint_lines = hint_text.split("\n")
+            hx = hint_box.x + 10
+            hy = hint_box.y + 10
+            for line in hint_lines:
+                hint_surf, _ = self.font.render(line, (0,0,0))
+                screen.blit(hint_surf, (hx, hy))
+                hy += 30
+        pygame.draw.rect(screen, (255,255,255), self.input_rect, border_radius=4)
+        pygame.draw.rect(screen, (0,0,0), self.input_rect, 2, border_radius=4)
+        prompt_surf, _ = self.label_font.render("답 입력:", (0,0,0))
+        prompt_w = prompt_surf.get_width()
+        prompt_h = prompt_surf.get_height()
+        prompt_x = self.input_rect.x - prompt_w - 12
+        prompt_y = self.input_rect.y + (self.input_rect.height - prompt_h) // 2
+        screen.blit(prompt_surf, (prompt_x, prompt_y))
+        answer_surf, _ = self.label_font.render(self.answer_text, (0,0,0))
+        answer_y = self.input_rect.y + (self.input_rect.height - answer_surf.get_height()) // 2
+        screen.blit(answer_surf, (self.input_rect.x + 8, answer_y))
+        if self.input_active:
+            try:
+                ticks = pygame.time.get_ticks()
+                if (ticks // 500) % 2 == 0:
+                    cursor_x = self.input_rect.x + 8 + answer_surf.get_width() + 2
+                    cursor_y1 = self.input_rect.y + 6
+                    cursor_y2 = self.input_rect.y + self.input_rect.height - 6
+                    pygame.draw.line(screen, (0,0,0), (cursor_x, cursor_y1), (cursor_x, cursor_y2), 2)
+            except Exception:
+                pass
+        if self.feedback_msg:
+            fb_surf, _ = self.label_font.render(self.feedback_msg, (255,0,0))
+            screen.blit(fb_surf, (self.input_rect.x, self.input_rect.y - 30))

@@ -17,6 +17,12 @@ class AudioManager:
         self.playing = False
         self.paused = False
         self._sfx_list = []
+        try:
+            if not pygame.mixer.get_init():
+                pygame.mixer.init()
+            pygame.mixer.set_num_channels(32)
+        except Exception:
+            pass
 
     def _apply_music_volume(self):
         try:
@@ -115,6 +121,34 @@ class AudioManager:
                 try: self._apply_sfx_volume_to_sound(sound)
                 except Exception: pass
         except Exception: pass
+
+    def play_sfx(self, path):
+        if not path:
+            return
+        path = os.path.normpath(path)
+        try:
+            if not pygame.mixer.get_init():
+                try:
+                    pygame.mixer.init()
+                except Exception:
+                    return
+            sound = pygame.mixer.Sound(path)
+            self.register_sfx(sound)
+            try:
+                channel = pygame.mixer.find_channel()
+                if channel is None:
+                    channel = pygame.mixer.find_channel(True)
+                if channel:
+                    channel.play(sound)
+                else:
+                    sound.play()
+            except Exception:
+                try:
+                    sound.play()
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
     def is_music_playing(self):
         try:
