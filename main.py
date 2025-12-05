@@ -19,11 +19,7 @@ def main():
     audio = get_audio_manager()
 
     title_scene = TitleScene()
-    try:
-        play_scene = PlayScene(previous_scene=title_scene)
-    except TypeError:
-        play_scene = PlayScene()
-        setattr(play_scene, "previous_scene", title_scene)
+    play_scene = PlayScene(previous_scene=title_scene)
 
     story_lines = [
         "주인공인 현우는 네모 왕국 왕자로 태어났습니다.",
@@ -33,6 +29,7 @@ def main():
         "왕은 두 왕자에게 자신이 만든 퍼즐 코스를 먼저 해결하는 사람에게 왕위를 물려주겠다고 했습니다.",
         "과연 주인공은 무사히 왕위에 오를 수 있을까요?"
     ]
+
     story_scene = StoryIntro(
         lines=story_lines,
         bgm_path="assets/sounds/스토리 요약 브금.mp3",
@@ -41,37 +38,18 @@ def main():
         sfx_path="assets/sounds/선택 브금.wav",
         bg_image_path=os.path.join("assets","images","story background.png")
     )
-    options_scene = OptionsScene(bgm_volume=0.1, sfx_volume=0.3, previous_scene=title_scene)
 
-    try:
-        puzzle1 = Puzzle1(previous_scene=play_scene)
-    except TypeError:
-        puzzle1 = Puzzle1()
-    try:
-        puzzle2 = Puzzle2(previous_scene=play_scene)
-    except TypeError:
-        puzzle2 = Puzzle2()
-    try:
-        puzzle3 = Puzzle3(previous_scene=play_scene)
-    except TypeError:
-        puzzle3 = Puzzle3()
-    try:
-        goal_scene = GoalScene(previous_scene=play_scene)
-    except TypeError:
-        goal_scene = GoalScene()
-    try:
-        ending_scene = EndingScene(previous_scene=title_scene)
-    except TypeError:
-        ending_scene = EndingScene()
+    options_scene = OptionsScene()
+    options_scene.previous_scene = title_scene
+
+    puzzle1 = Puzzle1(previous_scene=play_scene)
+    puzzle2 = Puzzle2(previous_scene=play_scene)
+    puzzle3 = Puzzle3(previous_scene=play_scene)
+    goal_scene = GoalScene(previous_scene=play_scene)
+    ending_scene = EndingScene(previous_scene=title_scene)
 
     current_scene = title_scene
-    last_scene = None
-    if hasattr(title_scene, "start"):
-        try:
-            pygame.mixer.stop()
-        except Exception:
-            pass
-        title_scene.start()
+    current_scene.start()
 
     running = True
     while running:
@@ -100,7 +78,6 @@ def main():
                         "ending": ending_scene,
                         "title": title_scene,
                         "options": options_scene,
-
                     }
                     next_scene = mapping.get(cmd, None)
                     if cmd == "options":
@@ -109,19 +86,12 @@ def main():
                     next_scene = result
 
                 if next_scene is not None and next_scene is not current_scene:
-                    try:
-                        pygame.mixer.stop()
-                    except Exception:
-                        pass
+                    if hasattr(next_scene, "start"):
+                        if next_scene == play_scene and isinstance(current_scene, OptionsScene):
+                            next_scene.start(resume_from_options=True)
+                        else:
+                            next_scene.start()
                     current_scene = next_scene
-
-        if current_scene is not last_scene:
-            try:
-                if hasattr(current_scene, "start"):
-                    current_scene.start()
-            except Exception:
-                pass
-            last_scene = current_scene
 
         try:
             if hasattr(current_scene, "update"):

@@ -95,7 +95,6 @@ class AudioManager:
                         except Exception:
                             self.playing = False
 
-
     def set_sfx_volume(self, volume):
         self.sfx_volume = max(0.0, min(1.0, volume))
         remove_list = []
@@ -116,6 +115,12 @@ class AudioManager:
                 try: self._apply_sfx_volume_to_sound(sound)
                 except Exception: pass
         except Exception: pass
+
+    def is_music_playing(self):
+        try:
+            return pygame.mixer.music.get_busy()
+        except Exception:
+            return False
 
 def get_audio_manager():
     return AudioManager()

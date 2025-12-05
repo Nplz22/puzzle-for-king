@@ -72,8 +72,14 @@ class PlayScene:
         self.type_timer = 0.0
         self.left_pressed = False
         self.right_pressed = False
+        self._resuming_from_options = False
 
-    def start(self):
+    def start(self, resume_from_options=False):
+        if resume_from_options:
+            if self.bgm_path:
+                self.audio.play_music(self.bgm_path)
+            return
+        self._resuming_from_options = False
         if self.bgm_path:
             self.audio.play_music(self.bgm_path)
         self.camera_x = 0
