@@ -11,14 +11,15 @@ class Puzzle1:
         self.completed = False
         self.audio = get_audio_manager()
         self.bgm_path = "assets/sounds/puzzle1 브금.mp3"
+        self.clear_music_path = "assets/sounds/clear.mp3"
         screen = pygame.display.get_surface()
         w, h = screen.get_size() if screen else (800, 600)
         self.bg_image = PuzzleBackground(width=w, height=h).image
         self.current_index = 0
         self.problems = [
             "1.물음표에 들어갈 것은?\n\n  I am on Ear Pad [?]",
-            "2. 다음 영어 수수께끼의 정답은 무엇일까요?\n 'I am an odd number. Take away a letter and I become even. What am I?'\n(저는 홀수입니다. 제 철자 하나를 빼면 짝수가 됩니다. 저는 무엇일까요?)",
-            "3. 다음 물음표에 들어갈 숫자는 무엇일까요?\n8809=6\n7111=0\n2172=0\n6666=4\n3213=0\n9312=?"
+            "2.다음 영어 수수께끼의 정답은 무엇일까요?\n\n 'I am an odd number. \nTake away a letter and I become even. \nWhat am I?'\n(저는 홀수입니다. 제 철자 하나를 \n빼면 짝수가 됩니다. 저는 무엇일까요?)",
+            "3.다음 물음표에 들어갈 숫자는 무엇일까요?\n\n8809=6\n7111=0\n2172=0\n6666=4\n3213=0\n9312=?"
         ]
         self.answers = [
             "love",
@@ -37,12 +38,19 @@ class Puzzle1:
         self.input_rect = pygame.Rect(250, h - 110, 400, 36)
         self.feedback_msg = ""
         self.feedback_timer = 0
+        self.cleared = False
+        self.clear_start_time = None
 
     def start(self):
         if self.bgm_path:
             self.audio.play_music(self.bgm_path)
 
     def handle_event(self, event):
+        if self.cleared:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                return self.previous_scene
+            return None
+
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.hint_rect.collidepoint(event.pos):
                 self.show_hint = not self.show_hint
@@ -50,6 +58,7 @@ class Puzzle1:
                 self.input_active = True
             else:
                 self.input_active = False
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 return "options"
@@ -68,8 +77,17 @@ class Puzzle1:
                         self.current_index += 1
                         self.show_hint = False
                         if self.current_index >= len(self.problems):
-                            self.completed = True
-                            return self.previous_scene
+                            self.cleared = True
+                            self.input_active = False
+                            self.show_hint = False
+                            try:
+                                self.audio.stop_music()
+                            except Exception:
+                                pass
+                            try:
+                                self.audio.play_music(self.clear_music_path, loop=0)
+                            except Exception:
+                                pass
                     else:
                         try:
                             self.audio.play_sfx("assets/sounds/wrong.wav")
@@ -91,16 +109,80 @@ class Puzzle1:
 
     def draw(self, screen):
         screen.blit(self.bg_image, (0, 0))
-        if self.current_index < len(self.problems):
-            lines = self.problems[self.current_index].split("\n")
-            y_offset = 240
-            x_offset = 250
+
+        if not self.cleared and self.current_index < len(self.problems):
+            text = self.problems[self.current_index]
+            if self.current_index == 1:
+                x_offset = 150
+                y_offset = 140
+            elif self.current_index == 2:
+                x_offset = 150
+                y_offset = 80
+            else:
+                x_offset = 250
+                y_offset = 240
+            max_width = screen.get_width() - x_offset - 50
+
+            def wrap_text(text, font, max_w):
+                lines = []
+                for para in text.split("\n"):
+                    if para == "":
+                        lines.append("")
+                        continue
+                    words = para.split(" ")
+                    line = ""
+                    for w in words:
+                        test = line + (" " if line else "") + w
+                        surf, _ = font.render(test, (0,0,0))
+                        if surf.get_width() <= max_w:
+                            line = test
+                        else:
+                            if line:
+                                lines.append(line)
+                            long_word = w
+                            surf_word, _ = font.render(long_word, (0,0,0))
+                            if surf_word.get_width() <= max_w:
+                                line = long_word
+                            else:
+                                part = ""
+                                for ch in long_word:
+                                    testp = part + ch
+                                    surfp, _ = font.render(testp, (0,0,0))
+                                    if surfp.get_width() <= max_w:
+                                        part = testp
+                                    else:
+                                        if part:
+                                            lines.append(part)
+                                        part = ch
+                                if part:
+                                    line = part
+                    if line:
+                        lines.append(line)
+                return lines
+
+            lines = wrap_text(text, self.font, max_width)
+            sample_surf, _ = self.font.render("Ay", (0,0,0))
+            line_h = sample_surf.get_height() + 6
             for line in lines:
-                text_surf, _ = self.font.render(line, (0, 0, 0))
+                text_surf, _ = self.font.render(line, (0,0,0))
                 screen.blit(text_surf, (x_offset, y_offset))
-                y_offset += 40
-        esc_surf, _ = self.font.render("ESC: 옵션", (240, 240, 240))
+                y_offset += line_h
+
+        if self.cleared:
+            clear_surf, _ = self.label_font.render("Clear!", (0,0,0))
+            cx = (screen.get_width() - clear_surf.get_width()) // 2
+            cy = (screen.get_height() - clear_surf.get_height()) // 2
+            screen.blit(clear_surf, (cx, cy))
+
+            next_surf, _ = self.font.render("엔터를 눌러 다음으로 넘어가기", (0,0,0))
+            nx = (screen.get_width() - next_surf.get_width()) // 2
+            ny = cy + clear_surf.get_height() + 20
+            screen.blit(next_surf, (nx, ny))
+            return
+
+        esc_surf, _ = self.font.render("ESC: 옵션", (240,240,240))
         screen.blit(esc_surf, (10, 10))
+
         hint_label_surf, _ = self.label_font.render("힌트", (0,0,0))
         label_w = hint_label_surf.get_width()
         label_h = hint_label_surf.get_height()
@@ -112,18 +194,41 @@ class Puzzle1:
         self.hint_rect.y = screen.get_height() - self.hint_rect.height - 20
         pygame.draw.rect(screen, (200,200,200), self.hint_rect, border_radius=4)
         screen.blit(hint_label_surf, (self.hint_rect.x + pad_x, self.hint_rect.y + pad_y))
+
         if self.show_hint:
-            hint_box = pygame.Rect(120, screen.get_height()-220, 400, 100)
+            hints = getattr(self, "hints", None)
+            if not hints or len(hints) <= self.current_index:
+                hints = [getattr(self, "hint_text", "")] * max(1, len(getattr(self, "problems", [""])))
+            hint_text = hints[self.current_index] if self.current_index < len(hints) else ""
+            max_w = 400 - 20
+            hint_lines = []
+            for para in hint_text.split("\n"):
+                words = para.split(" ")
+                line = ""
+                for w in words:
+                    test = line + (" " if line else "") + w
+                    surf, _ = self.font.render(test, (0,0,0))
+                    if surf.get_width() <= max_w:
+                        line = test
+                    else:
+                        if line:
+                            hint_lines.append(line)
+                        line = w
+                if line:
+                    hint_lines.append(line)
+            sample_surf, _ = self.font.render("Ay", (0,0,0))
+            lh = sample_surf.get_height() + 4
+            box_h = max(60, len(hint_lines) * (lh) + 20)
+            hint_box = pygame.Rect(120, 100, 400, box_h)
             pygame.draw.rect(screen, (255,255,255), hint_box, border_radius=6)
             pygame.draw.rect(screen, (0,0,0), hint_box, 2, border_radius=6)
-            hint_text = self.hints[self.current_index] if self.current_index < len(self.hints) else ""
-            hint_lines = hint_text.split("\n")
             hx = hint_box.x + 10
             hy = hint_box.y + 10
             for line in hint_lines:
-                hint_surf, _ = self.font.render(line, (0,0,0))
-                screen.blit(hint_surf, (hx, hy))
-                hy += 30
+                surf, _ = self.font.render(line, (0,0,0))
+                screen.blit(surf, (hx, hy))
+                hy += surf.get_height() + 4
+
         pygame.draw.rect(screen, (255,255,255), self.input_rect, border_radius=4)
         pygame.draw.rect(screen, (0,0,0), self.input_rect, 2, border_radius=4)
         prompt_surf, _ = self.label_font.render("답 입력:", (0,0,0))
@@ -132,19 +237,19 @@ class Puzzle1:
         prompt_x = self.input_rect.x - prompt_w - 12
         prompt_y = self.input_rect.y + (self.input_rect.height - prompt_h) // 2
         screen.blit(prompt_surf, (prompt_x, prompt_y))
+
         answer_surf, _ = self.label_font.render(self.answer_text, (0,0,0))
         answer_y = self.input_rect.y + (self.input_rect.height - answer_surf.get_height()) // 2
         screen.blit(answer_surf, (self.input_rect.x + 8, answer_y))
+
         if self.input_active:
-            try:
-                ticks = pygame.time.get_ticks()
-                if (ticks // 500) % 2 == 0:
-                    cursor_x = self.input_rect.x + 8 + answer_surf.get_width() + 2
-                    cursor_y1 = self.input_rect.y + 6
-                    cursor_y2 = self.input_rect.y + self.input_rect.height - 6
-                    pygame.draw.line(screen, (0,0,0), (cursor_x, cursor_y1), (cursor_x, cursor_y2), 2)
-            except Exception:
-                pass
+            ticks = pygame.time.get_ticks()
+            if (ticks // 500) % 2 == 0:
+                cursor_x = self.input_rect.x + 8 + answer_surf.get_width() + 2
+                cursor_y1 = self.input_rect.y + 6
+                cursor_y2 = self.input_rect.y + self.input_rect.height - 6
+                pygame.draw.line(screen, (0,0,0), (cursor_x, cursor_y1), (cursor_x, cursor_y2), 2)
+
         if self.feedback_msg:
             fb_surf, _ = self.label_font.render(self.feedback_msg, (255,0,0))
             screen.blit(fb_surf, (self.input_rect.x, self.input_rect.y - 30))
