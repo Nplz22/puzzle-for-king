@@ -37,6 +37,7 @@ class Puzzle1:
         self.cleared = False
         self.next_scene_result = None
         self.clear_playing = False
+        self.waiting_enter = False
 
     def start(self):
         if self.bgm_path:
@@ -55,9 +56,7 @@ class Puzzle1:
                 self.input_active = False
 
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                self.next_scene_result = "options"
-            elif self.input_active:
+            if self.input_active:
                 if event.key == pygame.K_BACKSPACE:
                     self.answer_text = self.answer_text[:-1]
                 elif event.key == pygame.K_RETURN:
@@ -94,6 +93,9 @@ class Puzzle1:
                     if hasattr(event, "unicode") and event.unicode and len(self.answer_text) < 40:
                         if not (ord(event.unicode) == 13):
                             self.answer_text += event.unicode
+            else:
+                pass
+        return None
 
     def update(self, dt):
         if self.feedback_timer > 0:
@@ -102,7 +104,6 @@ class Puzzle1:
                 self.feedback_msg = ""
         if self.clear_playing and not self.audio.is_music_playing():
             self.next_scene_result = "play2"
-
 
     def draw(self, screen):
         screen.blit(self.bg_image, (0, 0))
@@ -161,9 +162,6 @@ class Puzzle1:
                 ny = cy + clear_surf.get_height() + 20
                 screen.blit(next_surf, (nx, ny))
             return
-
-        esc_surf, _ = self.font.render("ESC: 옵션", (240,240,240))
-        screen.blit(esc_surf, (10, 10))
 
         hint_label_surf, _ = self.label_font.render("힌트", (0,0,0))
         label_w = hint_label_surf.get_width()

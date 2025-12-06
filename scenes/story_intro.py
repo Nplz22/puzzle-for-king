@@ -79,10 +79,6 @@ class StoryIntro:
                             if self.previous_scene:
                                 return self.previous_scene
                         return None
-            elif event.key == pygame.K_ESCAPE:
-                try: self.audio.stop_music()
-                except Exception: pass
-                return "options"
         return None
 
     def update(self, dt):
@@ -130,5 +126,3 @@ class StoryIntro:
         hint = "엔터: 문장 빠르게 표시" if self.typing else "엔터: 다음 / 마지막이면 종료"
         hint_surf, hint_rect = self.font.render(hint, (160,160,160))
         screen.blit(hint_surf, (box.right - hint_rect.width - 10, box.bottom - hint_rect.height - 8))
-        hud_s, hud_r = self.font.render("ESC: 옵션", (240,240,240))
-        screen.blit(hud_s, (10,10))

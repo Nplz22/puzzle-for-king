@@ -43,8 +43,6 @@ class Puzzle:
             if event.key in (pygame.K_RETURN, pygame.K_SPACE):
                 self.completed = True
                 return self.previous_scene
-            if event.key == pygame.K_ESCAPE:
-                return "options"
         return None
 
     def update(self, dt):

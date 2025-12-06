@@ -121,11 +121,9 @@ class PlayScene:
                         self.left_pressed = False
                         self.right_pressed = False
                 return None
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                return "options"
             return None
         if event.type == pygame.KEYDOWN:
-            if event.key in (pygame.K_ESCAPE, pygame.K_p):
+            if event.key == pygame.K_p:
                 return "options"
             if event.key in (pygame.K_LEFT, pygame.K_a):
                 self.left_pressed = True
@@ -264,5 +262,3 @@ class PlayScene:
             hint_surf, hint_rect = self.font.render(hint, (120,120,120))
             screen.blit(hint_surf, (bubble.right - hint_rect.width - 10, bubble.bottom - hint_rect.height - 8))
             return
-        hud_s, hud_r = self.font.render("ESC: 옵션", (240,240,240))
-        screen.blit(hud_s, (10,10))
