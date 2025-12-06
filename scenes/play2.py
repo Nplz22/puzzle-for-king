@@ -38,7 +38,7 @@ class Play2Scene:
         self.font = fonts.malgun_font
         self.name_font = fonts.malgunbd_font_small
         try:
-            img = pygame.image.load(os.path.join("assets","images","first map.png")).convert()
+            img = pygame.image.load(os.path.join("assets","images","second map.png")).convert()
             screen = pygame.display.get_surface()
             if screen:
                 w, h = screen.get_size()
@@ -50,7 +50,7 @@ class Play2Scene:
         self.audio = get_audio_manager()
         self.bgm_path = bgm_path
         self.camera_x = 0
-        self.ground_y = 520
+        self.ground_y = 550
         self.player_speed = 220
         bg_path = os.path.join("assets","images","prince.png")
         self.player = Player(400, self.ground_y, bg_path, scale=2.0, speed=self.player_speed)

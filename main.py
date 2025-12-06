@@ -5,7 +5,6 @@ from scenes.play import PlayScene
 from scenes.play2 import Play2Scene
 from scenes.puzzle1 import Puzzle1
 from scenes.puzzle2 import Puzzle2
-from scenes.puzzle3 import Puzzle3
 from scenes.goal import GoalScene
 from scenes.ending import EndingScene
 from scenes.options import OptionsScene
