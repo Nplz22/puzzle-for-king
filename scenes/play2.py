@@ -34,7 +34,7 @@ class Scroll(pygame.sprite.Sprite):
             self.direction = 1
 
 class Play2Scene:
-    def __init__(self, previous_scene=None, bgm_path="assets/sounds/플레이 브금.mp3"):
+    def __init__(self, previous_scene=None, bgm_path="assets/sounds/플레이2 브금.mp3"):
         self.previous_scene = previous_scene
         self.font = fonts.malgun_font
         self.name_font = fonts.malgunbd_font_small
