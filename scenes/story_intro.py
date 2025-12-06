@@ -12,6 +12,7 @@ class StoryIntro:
         self.previous_scene = previous_scene
         self.next_scene = next_scene
         self.typing = True
+        self.waiting_enter = False
         self.type_pos = 0
         self.type_speed = 60.0
         self.type_timer = 0.0
@@ -47,6 +48,7 @@ class StoryIntro:
         self.index = 0
         self.type_pos = 0
         self.typing = True
+        self.waiting_enter = False
         self.type_timer = 0.0
 
     def handle_event(self, event):
@@ -58,6 +60,8 @@ class StoryIntro:
                 if self.typing:
                     self.type_pos = len(self.lines[self.index])
                     self.typing = False
+                    if self.index == len(self.lines) - 1:
+                        self.waiting_enter = True
                     return None
                 else:
                     if self.index < len(self.lines) - 1:
@@ -67,12 +71,13 @@ class StoryIntro:
                         self.type_timer = 0.0
                         return None
                     else:
-                        try: self.audio.stop_music()
-                        except Exception: pass
-                        if self.next_scene:
-                            return self.next_scene
-                        if self.previous_scene:
-                            return self.previous_scene
+                        if self.waiting_enter:
+                            try: self.audio.stop_music()
+                            except Exception: pass
+                            if self.next_scene:
+                                return self.next_scene
+                            if self.previous_scene:
+                                return self.previous_scene
                         return None
             elif event.key == pygame.K_ESCAPE:
                 try: self.audio.stop_music()
@@ -90,6 +95,8 @@ class StoryIntro:
             self.type_timer -= chars / self.type_speed
             if self.type_pos >= len(self.lines[self.index]):
                 self.typing = False
+                if self.index == len(self.lines) - 1:
+                    self.waiting_enter = True
 
     def draw(self, screen):
         if self.bg_image:
