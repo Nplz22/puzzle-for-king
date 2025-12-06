@@ -23,12 +23,14 @@ def main():
     play2_scene = Play2Scene(previous_scene=None)
     puzzle1_scene = Puzzle1(previous_scene=play_scene)
     play2_scene.previous_scene = puzzle1_scene
+    puzzle2_scene = Puzzle2(previous_scene=play2_scene)
+    play2_scene.next_scene_target = puzzle2_scene
 
     story_lines = [
         "주인공인 현우는 네모 왕국 왕자로 태어났습니다.",
         "하지만 어린 나이에 자신의 어머니(왕비)가 세상을 떠나버렸어요.",
         "왕은 새 왕비를 모셔왔고 그렇게 둘 사이에 또 다른 왕자가 한 명 태어났습니다.",
-        "새 왕비는 본인한테서 태어난 왕자를 더 이뻐했고 현우를 못 살게 굴기 시작했습니다.",
+        "새 왕비는 본인한테서 태어난 왕자를 더 이뻐했고 질투심에 현우를 못 살게 굴기 시작했습니다.",
         "그렇게 현우는 온갖 괴롭힘을 견뎌내며 왕자 생활을 하고 있었습니다.",
         "시간이 지날수록 왕은 건강이 악화되었고,",
         "왕은 두 왕자에게 자신이 만든 퍼즐 코스를 먼저 해결하는 사람에게 왕위를 물려주겠다고 했습니다.",
@@ -73,6 +75,7 @@ def main():
                         "play2": play2_scene,
                         "puzzle1": puzzle1_scene,
                         "options": options_scene,
+                        "puzzle2": puzzle2_scene,
                     }
                     next_scene = mapping.get(cmd, None)
                     if cmd == "options":

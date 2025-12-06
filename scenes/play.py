@@ -20,9 +20,6 @@ class Scroll(pygame.sprite.Sprite):
         self.rect.y = self.min_y
         self.speed = speed
         self.direction = 1
-        self.scroll_triggered = False
-        self.next_scene = None
-
 
     def update(self, dt):
         self.rect.y += self.direction * self.speed * dt
@@ -75,12 +72,12 @@ class PlayScene:
         self.type_timer = 0.0
         self.left_pressed = False
         self.right_pressed = False
+        self.next_scene = None
         self._resuming_from_options = False
 
     def start(self, resume_from_options=False):
-        if resume_from_options:
-            if self.bgm_path:
-                self.audio.play_music(self.bgm_path)
+        if resume_from_options and self.bgm_path:
+            self.audio.play_music(self.bgm_path)
             return
         self._resuming_from_options = False
         if self.bgm_path:
@@ -104,10 +101,6 @@ class PlayScene:
             self.dialog_lines = list(self.initial_dialogue_lines)
             self.dialog_active = True
             self.typing = True
-            self.dialog_index = 0
-            self.type_pos = 0
-            self.left_pressed = False
-            self.right_pressed = False
 
     def handle_event(self, event):
         if self.dialog_active:
@@ -152,8 +145,6 @@ class PlayScene:
             self.next_scene = None
             return tmp
         return None
-        
-
 
     def update(self, dt):
         if self.dialog_active:
@@ -166,6 +157,7 @@ class PlayScene:
                     if self.type_pos >= len(self.dialog_lines[self.dialog_index]):
                         self.typing = False
             return None
+
         keys = pygame.key.get_pressed()
         moving_left = keys[pygame.K_LEFT] or keys[pygame.K_a] or self.left_pressed
         moving_right = keys[pygame.K_RIGHT] or keys[pygame.K_d] or self.right_pressed
@@ -178,6 +170,7 @@ class PlayScene:
                 screen = pygame.display.get_surface()
                 bgw = screen.get_width()
             self.player.rect.x = min(int(self.player.rect.x + self.player_speed * dt), bgw - self.player.rect.width)
+
         self.scroll_group.update(dt)
         screen = pygame.display.get_surface()
         w = screen.get_width()
@@ -190,22 +183,21 @@ class PlayScene:
         if self.player.rect.right > bgw:
             self.player.rect.right = bgw
         self.camera_x = min(max(0, int(self.player.rect.centerx - w // 2)), max(0, bgw - w))
+
         if self.show_scroll_dialogue_once and not self.dialog_active:
             px_on_world = self.player.rect.x
             scroll_x_world = self.scroll.rect.x
-            dist = abs(px_on_world - scroll_x_world)
-            if dist < 200:
+            if abs(px_on_world - scroll_x_world) < 200:
                 self.show_scroll_dialogue_once = False
                 self.dialog_lines = list(self.scroll_dialogue_lines)
                 self.dialog_active = True
                 self.dialog_index = 0
                 self.type_pos = 0
                 self.typing = True
-                self.left_pressed = False
-                self.right_pressed = False
+
         if pygame.sprite.spritecollideany(self.player, self.scroll_group) and not self.dialog_active:
-            self.scroll_triggered = True
             self.next_scene = "puzzle1"
+            self.next_scene_result = "puzzle1"
 
     def _wrap_text(self, text, maxw):
         words = text.split(" ")

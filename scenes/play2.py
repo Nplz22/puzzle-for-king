@@ -2,6 +2,7 @@ import pygame, os
 from scenes import fonts
 from scenes.audio import get_audio_manager
 from player import Player
+from scenes.puzzle2 import Puzzle2
 
 class Scroll(pygame.sprite.Sprite):
     def __init__(self, image_path, x, min_y, max_y, speed=80, size=(150,150)):
@@ -164,7 +165,7 @@ class Play2Scene:
                     self.type_timer -= chars / self.type_speed
                     if self.type_pos >= len(self.dialog_lines[self.dialog_index]):
                         self.typing = False
-            return None
+            return
 
         keys = pygame.key.get_pressed()
         moving_left = keys[pygame.K_LEFT] or keys[pygame.K_a] or self.left_pressed
@@ -172,25 +173,17 @@ class Play2Scene:
         if moving_left:
             self.player.rect.x = max(0, int(self.player.rect.x - self.player_speed * dt))
         if moving_right:
-            if self.bg_image:
-                bgw = self.bg_image.get_width()
-            else:
-                screen = pygame.display.get_surface()
-                bgw = screen.get_width()
+            bgw = self.bg_image.get_width() if self.bg_image else pygame.display.get_surface().get_width()
             self.player.rect.x = min(int(self.player.rect.x + self.player_speed * dt), bgw - self.player.rect.width)
 
         self.scroll_group.update(dt)
-        screen = pygame.display.get_surface()
-        w = screen.get_width()
-        if self.bg_image:
-            bgw = self.bg_image.get_width()
-        else:
-            bgw = w
-        if self.player.rect.left < 0:
-            self.player.rect.left = 0
-        if self.player.rect.right > bgw:
-            self.player.rect.right = bgw
-        self.camera_x = min(max(0, int(self.player.rect.centerx - w // 2)), max(0, bgw - w))
+
+        if self.player.rect.colliderect(self.scroll.rect):
+            self.next_scene = Puzzle2(previous_scene=self)
+
+        screen_w = pygame.display.get_surface().get_width()
+        bgw = self.bg_image.get_width() if self.bg_image else screen_w
+        self.camera_x = max(0, min(self.player.rect.centerx - screen_w // 2, bgw - screen_w))
 
     def _wrap_text(self, text, maxw):
         words = text.split(" ")
