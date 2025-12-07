@@ -75,6 +75,7 @@ Square-Kingdom/
 ├── main.py             # 게임 실행 파일
 ├── player.py           # 플레이어 클래스
 └── README.md           # 프로젝트 설명서
+```
 
 ## 💡 퍼즐 정답 및 해설 (Puzzle Solutions)
 <details>
