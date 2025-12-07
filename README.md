@@ -66,14 +66,21 @@ Square-Kingdom/
 │   ├── images/         # 캐릭터, 배경, 오브젝트 이미지
 │   ├── sounds/         # 배경음악 및 효과음
 │   └── screenshots/    # README용 스크린샷
-├── scenes/             # 게임 장면별 로직
-│   ├── intro.py        # 오프닝 스토리
-│   ├── play.py         # 스테이지 이동
-│   ├── puzzle.py       # 퍼즐 로직
-│   ├── ending.py       # 엔딩 및 크레딧
-│   └── audio.py        # 오디오 매니저
-├── main.py             # 게임 실행 파일
-├── player.py           # 플레이어 클래스
+├── scenes/             # 게임 장면별 로직 모음
+│   ├── __init__.py     # 패키지 초기화
+│   ├── audio.py        # 오디오 매니저 (BGM/효과음 관리)
+│   ├── ending.py       # 엔딩 및 크레딧 장면
+│   ├── fonts.py        # 폰트 설정
+│   ├── options.py      # 설정 화면 (볼륨 조절 등)
+│   ├── play.py         # 스테이지 1 (이동 및 대화)
+│   ├── play2.py        # 스테이지 2 (이동 및 대화)
+│   ├── puzzle.py       # 퍼즐 공통 로직/배경
+│   ├── puzzle1.py      # 첫 번째 퍼즐 (퀴즈)
+│   ├── puzzle2.py      # 두 번째 퍼즐 (퀴즈)
+│   ├── story_intro.py  # 오프닝 스토리 및 인트로
+│   └── title.py        # 게임 타이틀 화면
+├── main.py             # 게임 실행 파일 (메인 루프)
+├── player.py           # 플레이어 클래스 (이동, 점프 로직)
 └── README.md           # 프로젝트 설명서
 ```
 
