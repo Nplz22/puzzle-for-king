@@ -136,4 +136,4 @@ Square-Kingdom/
 
 ---
 
-**Developed by:** [강지훈]
+**Developed by:** [Nplz22]
