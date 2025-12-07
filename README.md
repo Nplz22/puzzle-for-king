@@ -99,6 +99,11 @@ Square-Kingdom/
 
 </details>
 
+## 🎨 이미지 및 리소스 출처 (Image & Assets Credits)
+
+* **배경 이미지 (Backgrounds):** Gemini 및 Nightcafe를 사용하여 AI 프롬프트로 생성했습니다.
+* **캐릭터 스프라이트 (Characters):** [Piskel](https://www.piskelapp.com/)을 사용하여 직접 도트를 찍어 제작했습니다.
+
 ## 🎵 사용된 음악 및 효과음 (Credits)
 
 이 게임에 사용된 모든 음원의 출처는 다음과 같습니다.
