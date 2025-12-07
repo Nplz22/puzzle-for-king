@@ -5,7 +5,6 @@ from scenes.play import PlayScene
 from scenes.play2 import Play2Scene
 from scenes.puzzle1 import Puzzle1
 from scenes.puzzle2 import Puzzle2
-from scenes.goal import GoalScene
 from scenes.ending import EndingScene
 from scenes.options import OptionsScene
 from scenes.audio import get_audio_manager
@@ -49,6 +48,8 @@ def main():
     options_scene = OptionsScene()
     options_scene.previous_scene = title_scene
 
+    ending_scene = EndingScene()
+
     current_scene = title_scene
     current_scene.start()
 
@@ -76,6 +77,7 @@ def main():
                         "puzzle1": puzzle1_scene,
                         "options": options_scene,
                         "puzzle2": puzzle2_scene,
+                        "ending": ending_scene,
                     }
                     next_scene = mapping.get(cmd, None)
                     if cmd == "options":
@@ -98,6 +100,7 @@ def main():
                     "play2": play2_scene,
                     "puzzle1": puzzle1_scene,
                     "options": options_scene,
+                    "ending": ending_scene,
                 }
                 next_scene_obj = mapping.get(next_scene, None)
                 if next_scene_obj and hasattr(next_scene_obj, "start"):
@@ -118,3 +121,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+

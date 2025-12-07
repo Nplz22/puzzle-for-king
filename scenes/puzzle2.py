@@ -52,6 +52,8 @@ class Puzzle2(Puzzle):
         self.swap_started = False
         self.countdown = SHOW_COUNTDOWN
         self.countdown_start = time.time()
+        self.clear_music_path = "assets/sounds/clear.mp3"
+        self.clear_playing = False
 
     def generate_cards_ordered(self):
         numbers = list(range(1, 17))
@@ -121,7 +123,6 @@ class Puzzle2(Puzzle):
         pygame.time.set_timer(pygame.USEREVENT + 3, 0)
         self.swap_started = True
         self.swap_queue = self.compute_swap_sequence()
-        print("start_swap_sequence: swaps generated =", len(self.swap_queue))
         self.queen_speaking = False
         if not self.swap_queue:
             self.swap_started = False
@@ -142,7 +143,6 @@ class Puzzle2(Puzzle):
                     card["rect"].topleft = (START_X + c*(CARD_SIZE + CARD_MARGIN),
                                             START_Y + r*(CARD_SIZE + CARD_MARGIN))
             self.swap_started = False
-            print("start_next_swap: finished all swaps")
             return
         a_idx, b_idx = self.swap_queue.pop(0)
         flat = self._flatten_cards()
@@ -164,7 +164,6 @@ class Puzzle2(Puzzle):
         }
         self.swap_start_time = time.time()
         self.swap_progress = 0.0
-        print(f"start_next_swap: start swap {a_idx} <-> {b_idx}")
 
     def update_swap_animation(self):
         if not self.current_swap:
@@ -201,9 +200,7 @@ class Puzzle2(Puzzle):
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
-            print("KEYDOWN received:", event.key)
             if self.queen_speaking and not getattr(self, "swap_started", False) and (event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER):
-                print("Enter pressed during queen_speaking -> starting swaps")
                 try:
                     self.audio.play_sfx("assets/sounds/queen_speak.wav")
                 except Exception:
@@ -211,7 +208,7 @@ class Puzzle2(Puzzle):
                 self.start_swap_sequence()
                 return None
             if self.finished and (event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER):
-                return "play2"
+                return "ending"
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not self.show_phase and not self.queen_speaking and not self.awaiting_feedback and not self.finished and not self.current_swap:
             pos = event.pos
             for row in range(ROWS):
@@ -265,6 +262,16 @@ class Puzzle2(Puzzle):
                     pass
         if self.current_swap:
             self.update_swap_animation()
+        if self.finished and not self.clear_playing:
+            try:
+                self.audio.stop_music()
+            except Exception:
+                pass
+            try:
+                self.audio.play_music(self.clear_music_path, loop=0)
+            except Exception:
+                pass
+            self.clear_playing = True
 
     def _wrap_text_lines(self, text, font, max_width, max_lines=2):
         words = text.split()
@@ -355,7 +362,7 @@ class Puzzle2(Puzzle):
                 else:
                     pygame.draw.rect(screen, (200, 0, 0), rect)
         if self.finished:
-            msg = "게임 클리어! 엔터를 눌러 계속하세요"
+            msg = "게임 클리어! 엔터를 눌러 엔딩 보기"
             msg_s, msg_r = self.font.render(msg, (200,200,200))
             mx = (screen.get_width() - msg_r.width) // 2
             screen.blit(msg_s, (mx, 40))
