@@ -1,4 +1,4 @@
-import pygame, os
+import pygame, os, sys
 from scenes import fonts
 from player import Player
 from scenes.audio import get_audio_manager
@@ -28,6 +28,10 @@ class EndingScene:
         self.is_fading = False
         self.fade_alpha = 0
 
+        self.the_end_y = self.screen_h + 100
+        self.the_end_target_y = self.screen_h // 2 - 50
+        self.is_text_animating = False
+
         self.hyeonwoo_final_x = 50
         self.queen_x = 600
         self.jinwoo_final_x = 300
@@ -51,23 +55,23 @@ class EndingScene:
 
     def _load_characters(self):
         self.characters["현우"] = Player(-150, self.ground_y, "assets/images/prince.png", scale=2.0, speed=200)
-        self.characters["왕비"] = Player(self.queen_x, self.ground_y, "assets/images/queen.png", scale=2.0, speed=0)
+        self.characters["왕비"] = Player(self.queen_x, self.ground_y, "assets/images/queen2.png", scale=2.0, speed=0)
         self.characters["진우"] = Player(-150, self.ground_y, "assets/images/jinwoo.png", scale=2.0, speed=200)
         self.characters["왕"] = Player(900, self.ground_y, "assets/images/king.png", scale=2.0, speed=200)
         self.characters["???"] = None
 
     def _prepare_dialogs(self):
         self.dialog_sequence = [
-            ("현우", "좋아 내가 해냈어! 내가 먼저 클리어 했다고"),
-            ("왕비", "난 인정할 수 없어! 솔직히 말해 너 반칙 썼지? 넌 왕이 될 자격이 없어"),
+            ("현우", "좋아 내가 해냈어! 내가 먼저 클리어 했다고!"),
+            ("왕비", "난 인정할 수 없어! 솔직히 말해 너 반칙 썼지? 넌 왕이 될 자격이 없어!"),
             ("???", "제발 그만!!!!!"),
-            ("진우", "엄마 제발 그만해! 나도 내가 못해서 진 거 인정하는데"),
-            ("진우", "그렇게 엄마가 인정 안 하니까 내가 오히려 더 쪽팔려. 현우가 잘한 거니까 인정하자..."),
-            ("왕비", "미안해 아들 난 너가 왕이 되었으면 하는 바람에 이렇게 한 건데..."),
-            ("왕비", "그래 너의 바람대로 그만할게. 현우야 쓸데없는 고집부려서 미안하다"),
-            ("???", "껄껄껄 보기 좋구나"),
-            ("왕", "먼저 푼 현우도 패배를 인정하는 진우도 다 대견하구나 역시 내 아들들 답다"),
-            ("왕", "하지만 약속은 약속이니 내 다음을 이을 왕은 현우가 될 것이다")
+            ("진우", "엄마 제발 그만해! 나도 내가 부족해서 진 거... 인정한다고."),
+            ("진우", "엄마가 결과를 인정하지 않으면... 최선을 다한 나까지 더 비참해질 뿐이야. 현우는 정정당당했어."),
+            ("왕비", "진우야... 난 그저 네가 왕이 되었으면 하는 마음에..."),
+            ("왕비", "하아... 그래, 네 뜻이 정 그렇다면 내가 물러서마. 현우야, 어른답지 못하게 굴어서 미안하다."),
+            ("???", "껄껄껄! 비 온 뒤에 땅이 굳는 법이지."),
+            ("왕", "먼저 푼 현우도, 패배를 멋지게 인정하는 진우도 모두 대견하구나. 역시 내 아들들 답다."),
+            ("왕", "약속은 약속이니, 내 뒤를 이을 차기 왕은 현우가 될 것이다!")
         ]
         self.dialog_lines = list(self.dialog_sequence)
 
@@ -84,9 +88,17 @@ class EndingScene:
         self.is_fading = False
         self.fade_alpha = 0
         self.show_the_end = False
+        self.is_text_animating = False
+        self.the_end_y = self.screen_h + 100
 
     def handle_event(self, event):
-        if self.is_fading or self.show_the_end:
+        if self.show_the_end:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                pygame.quit()
+                sys.exit()
+            return None
+
+        if self.is_fading:
             return None
 
         if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE):
@@ -121,6 +133,7 @@ class EndingScene:
             self.dialog_active = False
             self.is_fading = True
             pygame.mixer.music.stop()
+            self.audio.play_sfx("assets/sounds/the end 효과음.mp3")
 
     def update(self, dt):
         if self.is_fading:
@@ -129,7 +142,14 @@ class EndingScene:
                 self.fade_alpha = 255
                 self.is_fading = False
                 self.show_the_end = True
-                self.audio.play_sfx("assets/sounds/the end 효과음.mp3")
+                self.is_text_animating = True
+
+        if self.is_text_animating:
+            dy = self.the_end_target_y - self.the_end_y
+            self.the_end_y += dy * 5 * dt
+            if abs(dy) < 1:
+                self.the_end_y = self.the_end_target_y
+                self.is_text_animating = False
 
         if self.dialog_active and self.typing:
             self.type_timer += dt
@@ -204,10 +224,10 @@ class EndingScene:
             
             if self.show_the_end:
                 surf, rect = self.font.render("The End", (255,255,255))
-                screen.blit(surf, (w//2 - rect.width//2, h//2 - rect.height))
+                screen.blit(surf, (w//2 - rect.width//2, int(self.the_end_y)))
                 
                 surf2, rect2 = self.font.render("Esc를 눌러 게임을 종료하십시오", (255,255,255))
-                screen.blit(surf2, (w//2 - rect2.width//2, h//2 + 40))
+                screen.blit(surf2, (w//2 - rect2.width//2, int(self.the_end_y) + rect.height + 40))
 
     def _draw_wrapped_text(self, screen, text, x, y, max_width, color):
         words = text.split(" ")

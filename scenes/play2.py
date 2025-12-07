@@ -21,8 +21,6 @@ class Scroll(pygame.sprite.Sprite):
         self.rect.y = self.min_y
         self.speed = speed
         self.direction = 1
-        self.scroll_triggered = False
-        self.next_scene = None
 
     def update(self, dt):
         self.rect.y += self.direction * self.speed * dt
@@ -126,8 +124,6 @@ class Play2Scene:
                         self.type_timer = 0.0
                         self.left_pressed = False
                         self.right_pressed = False
-                        self.next_scene = "play2"
-                return None
             return None
 
         if event.type == pygame.KEYDOWN:
@@ -166,6 +162,7 @@ class Play2Scene:
         keys = pygame.key.get_pressed()
         moving_left = keys[pygame.K_LEFT] or keys[pygame.K_a] or self.left_pressed
         moving_right = keys[pygame.K_RIGHT] or keys[pygame.K_d] or self.right_pressed
+        
         if moving_left:
             self.player.rect.x = max(0, int(self.player.rect.x - self.player_speed * dt))
         if moving_right:
@@ -174,8 +171,10 @@ class Play2Scene:
 
         self.scroll_group.update(dt)
 
-        if self.player.rect.colliderect(self.scroll.rect):
-            self.next_scene = Puzzle2(previous_scene=self)
+        if pygame.sprite.spritecollideany(self.player, self.scroll_group):
+            if not self.next_scene:
+                self.next_scene = Puzzle2(previous_scene=self)
+                pygame.event.post(pygame.event.Event(pygame.USEREVENT))
 
         screen_w = pygame.display.get_surface().get_width()
         bgw = self.bg_image.get_width() if self.bg_image else screen_w
@@ -249,4 +248,3 @@ class Play2Scene:
             hint_surf, hint_rect = self.font.render(hint, (120,120,120))
             screen.blit(hint_surf, (bubble.right - hint_rect.width - 10, bubble.bottom - hint_rect.height - 8))
             return
-

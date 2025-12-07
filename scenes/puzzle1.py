@@ -21,7 +21,7 @@ class Puzzle1:
             "2.다음 영어 수수께끼의 정답은 무엇일까요?\n\n 'I am an odd number. \nTake away a letter and I become even. \nWhat am I?'\n(저는 홀수입니다. 제 철자 하나를 \n빼면 짝수가 됩니다. 저는 무엇일까요?)",
             "3.다음 물음표에 들어갈 숫자는 무엇일까요?\n\n8809=6\n7111=0\n2172=0\n6666=4\n3213=0\n9312=?"
         ]
-        self.answers = ["love","seven","1"]
+        self.answers = [["love"], ["seven", "7"], ["1"]]
         self.hints = [
             "트럼프 카드 모양들,\n 영어로 뭐였죠?",
             "1~10 사이에 숫자입니다\n (문제 사이에 힌트가 있어요!)",
@@ -46,7 +46,11 @@ class Puzzle1:
 
     def handle_event(self, event):
         if self.cleared:
+            if self.waiting_enter and event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.next_scene_result = "play2"
             return
+
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.hint_rect.collidepoint(event.pos):
                 self.show_hint = not self.show_hint
@@ -61,8 +65,9 @@ class Puzzle1:
                     self.answer_text = self.answer_text[:-1]
                 elif event.key == pygame.K_RETURN:
                     submitted = self.answer_text.strip().lower()
-                    correct = self.answers[self.current_index].strip().lower() if self.current_index < len(self.answers) else ""
-                    if submitted != "" and submitted == correct:
+                    valid_answers = self.answers[self.current_index]
+                    
+                    if submitted != "" and submitted in valid_answers:
                         try:
                             self.audio.play_sfx("assets/sounds/correct.wav")
                         except Exception:
@@ -73,6 +78,7 @@ class Puzzle1:
                         if self.current_index >= len(self.problems):
                             self.cleared = True
                             self.input_active = False
+                            self.waiting_enter = True
                             try:
                                 self.audio.stop_music()
                             except Exception:
@@ -102,8 +108,6 @@ class Puzzle1:
             self.feedback_timer -= 1
             if self.feedback_timer <= 0:
                 self.feedback_msg = ""
-        if self.clear_playing and not self.audio.is_music_playing():
-            self.next_scene_result = "play2"
 
     def draw(self, screen):
         screen.blit(self.bg_image, (0, 0))
@@ -157,7 +161,7 @@ class Puzzle1:
             screen.blit(clear_surf, (cx, cy))
 
             if self.waiting_enter:
-                next_surf, _ = self.font.render("엔터를 눌러 다음으로 넘어가기", (0,0,0))
+                next_surf, _ = self.font.render("엔터를 눌러 계속", (0,0,0))
                 nx = (screen.get_width() - next_surf.get_width()) // 2
                 ny = cy + clear_surf.get_height() + 20
                 screen.blit(next_surf, (nx, ny))
